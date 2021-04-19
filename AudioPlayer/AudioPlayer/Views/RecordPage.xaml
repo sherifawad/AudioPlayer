@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+             xmlns:vc="clr-namespace:AudioPlayer.ValueConverters"
+             x:Class="AudioPlayer.Views.RecordPage">
+    <StackLayout Spacing="50" HorizontalOptions="Center" VerticalOptions="Center">
+
+        <StackLayout IsVisible="{Binding FinishedRecording}" Spacing="50" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <StackLayout Orientation="Horizontal" Spacing="50" HorizontalOptions="Center">
+                <Label Text="Repeat" FontSize="Large" FontAttributes="Bold" />
+                <Switch IsToggled="{Binding Repeat}" />
+            </StackLayout>
+
+            <Grid ColumnSpacing="0" RowSpacing="0"
+                  IsVisible="{Binding Repeat}" RowDefinitions="*,*" ColumnDefinitions="Auto,*" HorizontalOptions="Center">
+                <Label Text="Max Repeat" FontAttributes="Bold" VerticalOptions="Center" />
+                <Entry Grid.Column="1" Text="{Binding MaxCount}" Keyboard="Numeric" />
+                <StackLayout Grid.Row="1" Orientation="Horizontal" VerticalOptions="Center">
+                    <Label Text="Repeat Till" FontAttributes="Bold" />
+                    <Switch IsToggled="{Binding IsPlayTillActive}" />
+                </StackLayout>
+                <TimePicker IsVisible="{Binding IsPlayTillActive}" Grid.Row="1" Grid.Column="1" Time="{Binding SelectedTime}" />
+            </Grid>
+            <StackLayout WidthRequest="250"  HorizontalOptions="Center">
+                <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" Value="{Binding Position.TotalSeconds}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
+                <Grid HorizontalOptions="FillAndExpand">
+                    <Label Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="Start" VerticalOptions="Center"/>
+                    <Label Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="End" VerticalOptions="Center"/>
+                </Grid>
+            </StackLayout>
+            <Grid>
+                <Button IsVisible="{Binding StartPlaying}" 
+                        ImageSource="{Binding IsPlaying, Converter={vc:BolleanToFontIconConverter}}"
+                        BackgroundColor="Transparent" Command="{Binding AudioPlayPauseCommand}" />
+                
+                <pv:PancakeView IsVisible="{Binding StartPlaying,Converter={vc:BooleanInvertConverter}}"
+                    HeightRequest="62" WidthRequest="62" CornerRadius="31" HorizontalOptions="Center" 
+                            VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
+                    <pv:PancakeView.BackgroundGradientStops>
+                        <pv:GradientStopCollection>
+                            <pv:GradientStop Color="#D4420C" Offset="0" />
+                            <pv:GradientStop Color="#F3A283" Offset="1" />
+                        </pv:GradientStopCollection>
+                    </pv:PancakeView.BackgroundGradientStops>
+                    <pv:PancakeView.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding PlayCommand}"/>
+                    </pv:PancakeView.GestureRecognizers>
+                    <Image Source="{Binding PlayImage}" HeightRequest="21" WidthRequest="21" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </pv:PancakeView>
+            </Grid>
+        </StackLayout>
+        <StackLayout IsVisible="{Binding FinishedRecording, Converter={vc:BooleanInvertConverter}}" 
+                     Spacing="50" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <Label Text="{Binding Timer,TargetNullValue=00:00:00}" FontSize="Large" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <StackLayout Orientation="Horizontal" Spacing="50" HorizontalOptions="Center">
+                <Label Text="&#xf2ed;" FontFamily="SolidAwesome" FontSize="Large" />
+                <Label Text="{Binding Icon}" FontFamily="SolidAwesome" FontSize="Large">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding PlayPauseCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="&#xf04d;" FontFamily="SolidAwesome" FontSize="Large" >
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StopCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </StackLayout>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioPlayer.Android", "AudioPlayer\AudioPlayer.Android\AudioPlayer.Android.csproj", "{9B13D21F-50DF-4F05-B390-A2C219B33A7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioPlayer", "AudioPlayer\AudioPlayer\AudioPlayer.csproj", "{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B13D21F-50DF-4F05-B390-A2C219B33A7C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1FAADF0-33FE-45C0-8F6A-350E97B38C0B}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C130AFD-B548-49F3-9EAB-5D7F51EA7A5D}
+	EndGlobalSection
+EndGlobal

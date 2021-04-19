@@ -7,12 +7,10 @@
 
   <ItemGroup>
     <None Remove="Fonts\fa-solid-900.ttf" />
-    <None Remove="Fonts\FontAwsomeSolid.otf" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Fonts\fa-solid-900.ttf" />
-    <EmbeddedResource Include="Fonts\FontAwsomeSolid.otf" />
   </ItemGroup>
 
   <ItemGroup>

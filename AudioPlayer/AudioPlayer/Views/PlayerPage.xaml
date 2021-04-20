@@ -66,11 +66,11 @@
                 <StackLayout WidthRequest="250"  HorizontalOptions="Center">
                     <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" Value="{Binding Position.TotalSeconds}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
                     <Grid HorizontalOptions="FillAndExpand">
-                        <Label Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="Start" VerticalOptions="Center"/>
+                        <Label  Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="Start" VerticalOptions="Center"/>
                         <Label Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="End" VerticalOptions="Center"/>
                     </Grid>
                 </StackLayout>
-                <StackLayout Orientation="Horizontal" Spacing="50" HorizontalOptions="Center">
+                <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="Center">
                     <pv:PancakeView  HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="Center" 
                             VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
                         <pv:PancakeView.BackgroundGradientStops>
@@ -84,7 +84,25 @@
                         </pv:PancakeView.GestureRecognizers>
                         <Image Source="previous.png" HeightRequest="15" WidthRequest="15" HorizontalOptions="Center" VerticalOptions="Center"/>
                     </pv:PancakeView>
-                    <pv:PancakeView  HeightRequest="62" WidthRequest="62" CornerRadius="31" HorizontalOptions="Center" 
+
+                    <pv:PancakeView  HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="Center" BackgroundColor="Black"
+                            VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
+                        <pv:PancakeView.BackgroundGradientStops>
+                            <pv:GradientStopCollection>
+                                <pv:GradientStop Color="#E3E7EE" Offset="0" />
+                                <pv:GradientStop Color="#FBFBFB" Offset="1" />
+                            </pv:GradientStopCollection>
+                        </pv:PancakeView.BackgroundGradientStops>
+                        <pv:PancakeView.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ShuffleCommand}"/>
+                        </pv:PancakeView.GestureRecognizers>
+                        <Grid>
+
+                            <Label IsVisible="{Binding NoShuffle}" Rotation="30" Text="&#xf715;" FontFamily="SolidAwesome" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Label Text="&#xf074;" FontFamily="SolidAwesome" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Grid>
+                    </pv:PancakeView>
+                    <pv:PancakeView  HeightRequest="62" WidthRequest="62" CornerRadius="31" HorizontalOptions="Center" BackgroundColor="Black"
                             VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
                         <pv:PancakeView.BackgroundGradientStops>
                             <pv:GradientStopCollection>
@@ -97,7 +115,28 @@
                         </pv:PancakeView.GestureRecognizers>
                         <Image Source="{Binding PlayIcon}" HeightRequest="21" WidthRequest="21" HorizontalOptions="Center" VerticalOptions="Center"/>
                     </pv:PancakeView>
-                    <pv:PancakeView  HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="Center" 
+
+                    <pv:PancakeView  HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="Center" BackgroundColor="Black"
+                            VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
+                        <pv:PancakeView.BackgroundGradientStops>
+                            <pv:GradientStopCollection>
+                                <pv:GradientStop Color="#E3E7EE" Offset="0" />
+                                <pv:GradientStop Color="#FBFBFB" Offset="1" />
+                            </pv:GradientStopCollection>
+                        </pv:PancakeView.BackgroundGradientStops>
+                        <pv:PancakeView.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding RepeatCommand}" />
+                        </pv:PancakeView.GestureRecognizers>
+                        <Grid>
+
+                            <Label Rotation="20" Text="&#xf715;" FontFamily="SolidAwesome" IsVisible="{Binding NoRepeat}"
+                               TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="{Binding RepeatIcon}" FontFamily="SolidAwesome" 
+                               TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Grid>
+                    </pv:PancakeView>
+
+                    <pv:PancakeView  HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="Center" BackgroundColor="Black"
                             VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
                         <pv:PancakeView.BackgroundGradientStops>
                             <pv:GradientStopCollection>

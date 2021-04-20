@@ -11,5 +11,6 @@ namespace AudioPlayer.Models
         public string Url { get; set; }
         public string CoverImage { get; set; } = "https://usercontent2.hubstatic.com/14548043_f1024.jpg";
         public bool IsRecent { get; set; }
+        public DateTime Date { get; set; }
     }
 }

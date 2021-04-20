@@ -22,17 +22,29 @@ namespace AudioPlayer.ViewModels
         private bool repeatOne;
         private bool repeatAll;
         private int repeatMode;
+        private bool isPlayTillActive;
 
         #endregion
 
-
-        #region Properties
+        #region public Properties
         public Audio SelectedMusic { get; set; }
         public bool NoShuffle { get; set; }
         public bool NoRepeat { get; set; }
         public string RepeatIcon { get; set; }
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
+        public bool IsRepeatEnabled { get; private set; }
+        public bool IsPlayTillActive 
+        {
+            get => isPlayTillActive;
+            set
+            { 
+                isPlayTillActive = value;
+                if (value)
+                    SelectedTime = DateTime.Now.TimeOfDay + TimeSpan.FromMinutes(2);
+            }
+        }
+        public TimeSpan SelectedTime { get; set; }
 
         public double Maximum
         {
@@ -97,6 +109,7 @@ namespace AudioPlayer.ViewModels
                     repeatAll = false;
                     RepeatIcon = REPEATONEICON;
                     repeatMode = 1;
+                    IsRepeatEnabled = true;
                     CrossMediaManager.Current.RepeatMode = MediaManager.Playback.RepeatMode.One;
                     Shuffle(false);
                     break;
@@ -106,6 +119,7 @@ namespace AudioPlayer.ViewModels
                     repeatAll = true;
                     RepeatIcon = REPEATALLICON;
                     repeatMode = 2;
+                    IsRepeatEnabled = true;
                     CrossMediaManager.Current.RepeatMode = MediaManager.Playback.RepeatMode.Off;
                     break;
                 case 2:
@@ -114,6 +128,7 @@ namespace AudioPlayer.ViewModels
                     repeatAll = false;
                     RepeatIcon = REPEATONEICON;
                     repeatMode = 0;
+                    IsRepeatEnabled = false;
                     CrossMediaManager.Current.RepeatMode = MediaManager.Playback.RepeatMode.Off;
                     Shuffle(false);
                     break;
@@ -202,17 +217,17 @@ namespace AudioPlayer.ViewModels
                 {
                     Duration = mediaInfo.Duration;
                     Maximum = Duration.TotalSeconds;
-                    Position = mediaInfo.Position;
-                    //if (repeatAll && mediaInfo.RepeatMode != MediaManager.Playback.RepeatMode.All)
-                    //    mediaInfo.RepeatMode = MediaManager.Playback.RepeatMode.All;
-                    //else if (repeatOne && mediaInfo.RepeatMode != MediaManager.Playback.RepeatMode.One)
-                    //    mediaInfo.RepeatMode = MediaManager.Playback.RepeatMode.All;
-                    //else if (NoRepeat && mediaInfo.RepeatMode != MediaManager.Playback.RepeatMode.Off)
-                    //    mediaInfo.RepeatMode = MediaManager.Playback.RepeatMode.Off;
-                    //if (NoShuffle && mediaInfo.ShuffleMode != MediaManager.Queue.ShuffleMode.Off)
-                    //    mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
-                    //else if (!NoShuffle && mediaInfo.ShuffleMode != MediaManager.Queue.ShuffleMode.All)
-                    //    mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.All;
+                    Position = mediaInfo.Position; 
+
+                    if (IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
+                    {
+                        IsPlayTillActive = false;
+                        IsPlaying = false;
+                        mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
+                        repeatMode = 2;
+                        Repeat();
+                        mediaInfo.Stop();
+                    }
                     return true;
                 });
             }

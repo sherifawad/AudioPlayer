@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+             NavigationPage.HasNavigationBar="False"
              x:Class="AudioPlayer.Views.PlayerPage">
     <pv:PancakeView HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
         <pv:PancakeView.BackgroundGradientStops>
@@ -56,13 +58,13 @@
                     </pv:PancakeView>
                 </pv:PancakeView>
                 <StackLayout HorizontalOptions="Center">
-                    <StackLayout>
+                    <StackLayout Padding="20,0,20,0">
                         <Label Text="{Binding SelectedMusic.Title}" TextColor="Black" FontSize="25" HorizontalOptions="Center"/>
                         <Label Text="{Binding SelectedMusic.Artist}" TextColor="Black" FontSize="15" Opacity="0.5" HorizontalOptions="Center"/>
                     </StackLayout>
                 </StackLayout>
             </StackLayout>
-            <StackLayout Spacing="100" Grid.Row="2" HorizontalOptions="FillAndExpand" VerticalOptions="StartAndExpand">
+            <StackLayout Spacing="50" Grid.Row="2" HorizontalOptions="FillAndExpand" VerticalOptions="StartAndExpand">
                 <StackLayout WidthRequest="250"  HorizontalOptions="Center">
                     <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" Value="{Binding Position.TotalSeconds}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
                     <Grid HorizontalOptions="FillAndExpand">
@@ -99,7 +101,7 @@
                         <Grid>
 
                             <Label IsVisible="{Binding NoShuffle}" Rotation="30" Text="&#xf715;" FontFamily="SolidAwesome" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
-                        <Label Text="&#xf074;" FontFamily="SolidAwesome" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            <Label Text="&#xf074;" FontFamily="SolidAwesome" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
                         </Grid>
                     </pv:PancakeView>
                     <pv:PancakeView  HeightRequest="62" WidthRequest="62" CornerRadius="31" HorizontalOptions="Center" BackgroundColor="Black"
@@ -150,6 +152,20 @@
                         <Image Source="next.png" HeightRequest="15" WidthRequest="15" HorizontalOptions="Center" VerticalOptions="Center"/>
                     </pv:PancakeView>
                 </StackLayout>
+                
+                <Grid ColumnDefinitions="Auto, Auto, *" Padding="20,0,20,0" >
+
+                    <Label IsVisible="{Binding IsRepeatEnabled}" Text="Repeat Till" TextColor="Black" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" IsVisible="{Binding IsRepeatEnabled}" IsToggled="{Binding IsPlayTillActive}" VerticalOptions="Center" >
+                        <Switch.Triggers>
+                            <DataTrigger TargetType="Switch" Binding="{Binding IsRepeatEnabled}" Value="false">
+                                <Setter Property="IsToggled" Value="False" />
+                            </DataTrigger>
+                        </Switch.Triggers>
+                    </Switch>
+
+                    <TimePicker Grid.Column="2" IsVisible="{Binding IsPlayTillActive}" TextColor="Black" Time="{Binding SelectedTime}" />
+                </Grid>
             </StackLayout>
         </Grid>
     </pv:PancakeView>

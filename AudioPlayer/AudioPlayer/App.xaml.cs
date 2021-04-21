@@ -19,6 +19,8 @@ namespace AudioPlayer
             DependencyService.Register<INavigationService, NavigationService>();
             //MainPage = new AppShell();
             //MainPage = new NavigationPage(new LandingPage());
+
+            DependencyService.Get<INavigationService>().InitializeAsync();
         }
         protected override async void OnStart()
         {
@@ -29,11 +31,11 @@ namespace AudioPlayer
                 status = await recordPermission.RequestAsync();
                 if(status != PermissionStatus.Granted)
                     System.Diagnostics.Process.GetCurrentProcess().Kill();
-                else
-                   await DependencyService.Get<INavigationService>().InitializeAsync();
+                //else
+                //   await DependencyService.Get<INavigationService>().InitializeAsync();
             }
-            else
-                await DependencyService.Get<INavigationService>().InitializeAsync();
+            //else
+            //    await DependencyService.Get<INavigationService>().InitializeAsync();
 
         }
 

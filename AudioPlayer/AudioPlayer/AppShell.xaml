@@ -30,7 +30,7 @@
     </Shell.Resources>
 
     <TabBar>
-        <ShellContent Title="Landing" ContentTemplate="{DataTemplate local:LandingPage}" />
+        <!--<ShellContent Title="Landing" ContentTemplate="{DataTemplate local:LandingPage}" />-->
         <!--<ShellContent Title="Landing" Icon="icon_about.png" Route="AboutPage" ContentTemplate="{DataTemplate local:LandingPage}" />-->
         <!--<ShellContent Title="Player" Icon="icon_feed.png" ContentTemplate="{DataTemplate local:PlayerPage}" />-->
     </TabBar>

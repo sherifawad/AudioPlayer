@@ -11,12 +11,16 @@ using Xamarin.Forms.Xaml;
 namespace AudioPlayer.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class RecordPage : ContentPage
+    public partial class RecordView : ContentPage
     {
-        public RecordPage()
+        public RecordView()
         {
             InitializeComponent();
-            BindingContext = new RecordViewModel();
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            return true;
         }
     }
 }

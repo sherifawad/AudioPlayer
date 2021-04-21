@@ -11,12 +11,15 @@ using Xamarin.Forms.Xaml;
 namespace AudioPlayer.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class LandingPage : ContentPage
+    public partial class LandingView : ContentPage
     {
-        public LandingPage()
+        public LandingView()
         {
             InitializeComponent();
-            BindingContext = new LandingViewModel();
+        }
+        protected override bool OnBackButtonPressed()
+        {
+            return true;
         }
     }
 }

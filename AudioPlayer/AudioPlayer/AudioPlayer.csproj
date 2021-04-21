@@ -17,19 +17,32 @@
     <PackageReference Include="Plugin.AudioRecorder" Version="1.1.0" />
     <PackageReference Include="Plugin.MediaManager.Forms" Version="1.0.8" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.3.3" />
+    <PackageReference Include="Xamarin.CommunityToolkit" Version="1.1.0" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />  
     <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />  
     <PackageReference Include="Xamarin.Forms.PancakeView" Version="2.3.0.759" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Views\LandingPage.xaml">
+    <Compile Update="Views\LandingView.xaml.cs">
+      <DependentUpon>LandingView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\PlayerView.xaml.cs">
+      <DependentUpon>PlayerView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\RecordView.xaml.cs">
+      <DependentUpon>RecordView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Views\LandingView.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="Views\PlayerPage.xaml">
+    <EmbeddedResource Update="Views\PlayerView.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="Views\RecordPage.xaml">
+    <EmbeddedResource Update="Views\RecordView.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
   </ItemGroup>

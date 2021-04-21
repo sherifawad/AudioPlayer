@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -14,7 +15,7 @@ namespace AudioPlayer.ViewModels
     public class PlayerViewModel : BaseViewModel
     {
         #region private Properties
-        private readonly List<Audio> MusicList;
+        private  List<Audio> MusicList;
         private const string REPEATONEICON = "\uf021";
         private const string REPEATALLICON = "\uf079";
         double maximum = 100f;
@@ -34,11 +35,11 @@ namespace AudioPlayer.ViewModels
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
         public bool IsRepeatEnabled { get; private set; }
-        public bool IsPlayTillActive 
+        public bool IsPlayTillActive
         {
             get => isPlayTillActive;
             set
-            { 
+            {
                 isPlayTillActive = value;
                 if (value)
                     SelectedTime = DateTime.Now.TimeOfDay + TimeSpan.FromMinutes(2);
@@ -82,15 +83,13 @@ namespace AudioPlayer.ViewModels
 
         public ICommand PlayCommand => new Command(Play);
         public ICommand ChangeCommand => new Command(ChangeMusic);
-        public ICommand BackCommand => new Command(() => Application.Current.MainPage.Navigation.PopAsync());
+        public ICommand BackCommand => new Command(async() => await _navigationService.NavigateToAsync<LandingViewModel>(new object[] {SelectedMusic}));
         public ICommand ShareCommand => new Command(() => Share.RequestAsync(SelectedMusic.Url, SelectedMusic.Title));
         #endregion
+        
 
-        public PlayerViewModel(Audio selectedMusic, List<Audio> musicList)
+        public override async Task InitializeAsync(object[] navigationData = null)
         {
-            SelectedMusic = selectedMusic;
-            MusicList = musicList;
-            PlayMusic(SelectedMusic);
             isPlaying = true;
             repeatMode = 0;
             NoRepeat = true;
@@ -98,6 +97,15 @@ namespace AudioPlayer.ViewModels
             repeatAll = false;
             RepeatIcon = REPEATONEICON;
             NoShuffle = true;
+
+            if (navigationData == null)
+                return;
+
+            SelectedMusic = navigationData[0] as Audio;
+            MusicList = navigationData[1] as List<Audio>;
+
+            PlayMusic(SelectedMusic);
+            await Task.FromResult(true);
         }
         private void Repeat()
         {
@@ -217,7 +225,7 @@ namespace AudioPlayer.ViewModels
                 {
                     Duration = mediaInfo.Duration;
                     Maximum = Duration.TotalSeconds;
-                    Position = mediaInfo.Position; 
+                    Position = mediaInfo.Position;
 
                     if (IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
                     {

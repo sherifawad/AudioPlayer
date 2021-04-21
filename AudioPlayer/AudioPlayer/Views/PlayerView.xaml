@@ -2,8 +2,10 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+             xmlns:local="clr-namespace:AudioPlayer"
+             local:ViewModelLocator.AutoWireViewModel="True"
              NavigationPage.HasNavigationBar="False"
-             x:Class="AudioPlayer.Views.PlayerPage">
+             x:Class="AudioPlayer.Views.PlayerView">
     <pv:PancakeView HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
         <pv:PancakeView.BackgroundGradientStops>
             <pv:GradientStopCollection>

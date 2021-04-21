@@ -4,20 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace AudioPlayer.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {
+        protected readonly INavigationService _navigationService = DependencyService.Get<INavigationService>();
         public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>();
 
-        bool isBusy = false;
-        public bool IsBusy
-        {
-            get { return isBusy; }
-            set { SetProperty(ref isBusy, value); }
-        }
+        public bool IsBusy { get; set; }
 
         string title = string.Empty;
         public string Title
@@ -25,6 +22,10 @@ namespace AudioPlayer.ViewModels
             get { return title; }
             set { SetProperty(ref title, value); }
         }
+
+        public virtual Task InitializeAsync(object[] navigationData = null) => Task.CompletedTask;
+
+        public virtual Task UninitializeAsync(object[] navigationData = null) => Task.CompletedTask;
 
         protected bool SetProperty<T>(ref T backingStore, T value,
             [CallerMemberName] string propertyName = "",
@@ -50,5 +51,7 @@ namespace AudioPlayer.ViewModels
             changed.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AudioPlayer.Models;
 using AudioPlayer.Views;
+using MediaManager;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace AudioPlayer.ViewModels
@@ -16,78 +18,92 @@ namespace AudioPlayer.ViewModels
     {
         public LandingViewModel()
         {
-            MusicList = new List<Audio>();
-            GetMusics();
-            RecentMusic = MusicList.Where(x => x.IsRecent == true).FirstOrDefault();
+            MusicList = new ObservableCollection<Audio>();
         }
 
-        public List<Audio> MusicList { get; private set; }
+        public ObservableCollection<Audio> MusicList { get; private set; }
 
-        public Audio RecentMusic { get; set; }
+        public Audio RecentMusic { get; private set; }
 
         public Audio SelectedMusic { get; set; }
 
         public ICommand SelectionCommand => new Command(async () => await PlayMusic());
         public ICommand NewRecordCommand => new Command(async () => await RecordAsync());
 
+        public override async Task InitializeAsync(object[] navigationData = null)
+        {
+            try
+            {
+                await CrossMediaManager.Current.Stop();
+                RecentMusic = null;
+                if (navigationData != null && navigationData[0] is Audio lastPlayed)
+                    RecentMusic = lastPlayed;
+                GetMusics();
+                await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {}
+        }
+
         private async Task PlayMusic()
         {
             if (SelectedMusic != null && !IsBusy)
             {
-                var viewModel = new PlayerViewModel(SelectedMusic, MusicList);
-                var playerPage = new PlayerPage { BindingContext = viewModel };
-
-                var navigation = Application.Current.MainPage as NavigationPage;
-                await navigation.PushAsync(playerPage, true);
+                var navPars = new object[] { SelectedMusic, MusicList.ToList() };
+                //var viewModel = new PlayerViewModel(SelectedMusic, MusicList);
+                //var playerPage = new PlayerPage { BindingContext = viewModel };
+                //var navigation = Application.Current.MainPage as NavigationPage;
+                await _navigationService.NavigateToAsync<PlayerViewModel>(navPars, true);
 
                 //await Shell.Current.GoToAsync(nameof(playerPage), true);
             }
         }
         private async Task RecordAsync()
         {
-            var navigation = Application.Current.MainPage as NavigationPage;
-            var recordPage = new RecordPage();
 
-            await navigation.PushAsync(recordPage, true);
+            var navPars = new object[] { MusicList.Count };
+            await _navigationService.NavigateToAsync<RecordViewModel>(navPars, true);
         }
 
-        private List<Audio> GetMusics()
+        private ObservableCollection<Audio> GetMusics()
         {
             IsBusy = true;
             try
             {
-                var dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string wavPattern = ".wav";
 
-                var FileList = Directory.GetFiles(dir);
+                DirectoryInfo di = new DirectoryInfo(FileSystem.AppDataDirectory);
+                FileSystemInfo[] files = di.GetFileSystemInfos();
+                var orderedFiles = files.Where(f => f.Name.EndsWith(wavPattern))
+                                        .OrderByDescending(f => f.CreationTime)
+                                        .ToList();
 
-                if (FileList != null)
+                if (orderedFiles != null && orderedFiles.Count > 0)
                 {
-                    for (int i = 0; i < FileList.Length; i++)
+                    MusicList.Clear();
+                    for (int i = 0; i < orderedFiles.Count; i++)
                     {
-                        if (FileList[i].EndsWith(wavPattern))
+                        var audio = new Audio
                         {
-                            MusicList.Add(new Audio { Title = Path.GetFileNameWithoutExtension(FileList[i]), Url = FileList[i] });
-                        }
+                            Title = Path.GetFileNameWithoutExtension(orderedFiles[i].Name),
+                            Url = orderedFiles[i].FullName,
+                            Date = orderedFiles[i].CreationTime
+                        };
+
+                        if (RecentMusic == null && i == 0)
+                            RecentMusic = audio;
+
+                        MusicList.Add(audio);
                     }
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             { }
             finally
             {
                 IsBusy = false;
             }
             return MusicList;
-            //return new ObservableCollection<Audio>
-            //{
-            //    new Audio { Title = "Beach Walk", Artist = "Unicorn Heads", Url = "https://devcrux.com/wp-content/uploads/Beach_Walk.mp3", CoverImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRU6FVly4jMTD3AKB_sHxqPofJVQwqqUj5peEvgA1H4XegM3uJ7&usqp=CAU", IsRecent = true},
-            //    new Audio { Title = "I'll Follow You", Artist = "Density & Time", Url = "https://devcrux.com/wp-content/uploads/I_ll_Follow_You.mp3", CoverImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRm-su97lHFGZrbR6BkgL32qbzZBj2f3gKGrFR0Pn66ih01SyGj&usqp=CAU"},
-            //    new Audio { Title = "Ancient", Artist = "Density & Time", Url = "https://devcrux.com/wp-content/uploads/Ancient.mp3"},
-            //    new Audio { Title = "News Room News", Artist = "Spence", Url = "https://devcrux.com/wp-content/uploads/Cats_Searching_for_the_Truth.mp3"},
-            //    new Audio { Title = "Bro Time", Artist = "Nat Keefe & BeatMowe", Url = "https://devcrux.com/wp-content/uploads/Bro_Time.mp3"},
-            //    new Audio { Title = "Cats Searching for the Truth", Artist = "Nat Keefe & Hot Buttered Rum", Url = "https://devcrux.com/wp-content/uploads/Cats_Searching_for_the_Truth.mp3"}
-            //};
         }
     }
 }

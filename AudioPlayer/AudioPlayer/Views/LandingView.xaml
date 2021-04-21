@@ -2,7 +2,10 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
-             x:Class="AudioPlayer.Views.LandingPage">
+             xmlns:local="clr-namespace:AudioPlayer"
+             local:ViewModelLocator.AutoWireViewModel="True"
+             NavigationPage.HasNavigationBar="False"
+             x:Class="AudioPlayer.Views.LandingView">
 
     <pv:PancakeView Shadow="{pv:ShadowMarkup Color=#FF0000, Offset='10,10'}" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
         <pv:PancakeView.BackgroundGradientStops>
@@ -80,7 +83,7 @@
                             </Grid.ColumnDefinitions>
                             <StackLayout VerticalOptions="Center">
                                 <Label Text="{Binding Title}" TextColor="Black" FontSize="17"/>
-                                <Label Text="{Binding Artist}" TextColor="Black" FontSize="12" Opacity="0.5"/>
+                                <Label Text="{Binding Date}" TextColor="Black" FontSize="12" Opacity="0.5"/>
                             </StackLayout>
                             <pv:PancakeView Shadow="{pv:ShadowMarkup Color=#FF0000, Offset='10,10'}" HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="End" VerticalOptions="Center" 
                                             BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">

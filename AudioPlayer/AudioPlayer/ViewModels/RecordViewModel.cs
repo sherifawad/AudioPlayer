@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace AudioPlayer.ViewModels
@@ -24,9 +25,10 @@ namespace AudioPlayer.ViewModels
         private List<string> recordedFiles;
         private string PauseIcon = "\uf04c";
         private string PalyIcon = "\uf04b";
-        private int _repeated;
+        private int _currentRecordNumber;
         double maximum = 100f;
 
+        public string AudioSource { get; private set; }
         public TimeSpan SelectedTime { get; set; }
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
@@ -76,6 +78,8 @@ namespace AudioPlayer.ViewModels
         public ICommand PlayCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
         public ICommand AudioPlayPauseCommand { get; private set; }
+        public ICommand BackCommand => new Command(async () => await _navigationService.NavigateToAsync<LandingViewModel>());
+        public ICommand ShareCommand => new Command(() => Share.RequestAsync(AudioSource, Path.GetFileNameWithoutExtension(AudioSource)));
 
         public RecordViewModel()
         {
@@ -88,8 +92,19 @@ namespace AudioPlayer.ViewModels
             };
             AudioPlayPauseCommand = new Command(() => playAudio());
             StopCommand = new Command(async () => await Stop());
-            Icon = PalyIcon;
             recordedFiles = new List<string>();
+        }
+
+        public override async Task InitializeAsync(object[] navigationData = null)
+        {
+            Icon = PalyIcon;
+            await CrossMediaManager.Current.Stop();
+
+            if (navigationData == null)
+                return;
+
+            _currentRecordNumber = (int)navigationData[0];
+
         }
 
         private async Task Stop()
@@ -104,7 +119,8 @@ namespace AudioPlayer.ViewModels
             {
                 if (recordedFiles.Count > 1)
                 {
-                    outPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.wav");
+                    //outPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.wav");
+                    outPath = Path.Combine(FileSystem.AppDataDirectory, $"{Guid.NewGuid()}.wav");
                     var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
                     if (result != null)
                     {
@@ -128,13 +144,44 @@ namespace AudioPlayer.ViewModels
                 }
 
                 if (!string.IsNullOrEmpty(outPath))
+                {
                     FinishedRecording = true;
+                    try
+                    {
+                        var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
+                        File.Move(outPath, newPath);
+                        //Uri file = new Uri(outPath);
+                        //// Must end in a slash to indicate folder
+                        //Uri folder = new Uri(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                        //string relativePath =
+                        //    Uri.UnescapeDataString(
+                        //        folder.MakeRelativeUri(file)
+                        //            .ToString()
+                        //            .Replace('/', Path.DirectorySeparatorChar)
+                        //        );
+                        //var result = await VideoFileHelpers.CopyVideoIfNotExists(outPath);
+                        //if (!string.IsNullOrEmpty(result))
+                        //    AudioSource = Path.GetFileName(outPath);
+                        AudioSource = newPath;
+                    }
+                    catch (Exception copyEx)
+                    {
+                        stopwatch.Reset();
+                        IsPlaying = false;
+                    }
+                }
                 else
+                {
                     stopwatch.Reset();
+                    IsPlaying = false;
+                }
 
             }
             catch (Exception ex)
-            { }
+            {
+                stopwatch.Reset();
+                IsPlaying = false;
+            }
         }
 
         private async void playAudio()
@@ -154,7 +201,6 @@ namespace AudioPlayer.ViewModels
         }
         private async void Play()
         {
-            _repeated = 0;
             try
             {
                 if (string.IsNullOrEmpty(outPath))
@@ -189,10 +235,6 @@ namespace AudioPlayer.ViewModels
 
                 mediaInfo.PositionChanged += (sender, args) =>
                 {
-                    if (args.Position == TimeSpan.FromSeconds(Maximum))
-                        _repeated++;
-
-
                     if (Repeat && IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
                     {
                         Repeat = false;
@@ -242,7 +284,8 @@ namespace AudioPlayer.ViewModels
             {
                 if (recorder != null && !recorder.IsRecording) //Record button clicked
                 {
-                    recorder.FilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.wav");
+                    //recorder.FilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.wav");
+                    recorder.FilePath = Path.Combine(FileSystem.AppDataDirectory, $"{Guid.NewGuid()}.wav");
 
                     //start recording audio
                     var audioRecordTask = await recorder.StartRecording();

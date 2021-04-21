@@ -11,11 +11,15 @@ using Xamarin.Forms.Xaml;
 namespace AudioPlayer.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class PlayerPage : ContentPage
+    public partial class PlayerView : ContentPage
     {
-        public PlayerPage()
+        public PlayerView()
         {
             InitializeComponent();
+        }
+        protected override bool OnBackButtonPressed()
+        {
+            return true;
         }
     }
 }

@@ -90,7 +90,8 @@ namespace AudioPlayer.ViewModels
 
         public override async Task InitializeAsync(object[] navigationData = null)
         {
-            isPlaying = true;
+            await CrossMediaManager.Current.Stop();
+            IsPlaying = false;
             repeatMode = 0;
             NoRepeat = true;
             repeatOne = false;
@@ -210,7 +211,7 @@ namespace AudioPlayer.ViewModels
             try
             {
                 var mediaInfo = CrossMediaManager.Current;
-                await mediaInfo.Play(music?.Url);
+                var mediaitem = await mediaInfo.Play(music?.Url);
                 IsPlaying = true;
 
                 mediaInfo.MediaItemFinished += (sender, args) =>
@@ -220,6 +221,7 @@ namespace AudioPlayer.ViewModels
                     if (repeatAll)
                         NextMusic();
                 };
+
 
                 Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
                 {

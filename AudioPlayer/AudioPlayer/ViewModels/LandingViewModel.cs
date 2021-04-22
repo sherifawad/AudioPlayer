@@ -23,12 +23,80 @@ namespace AudioPlayer.ViewModels
 
         public ObservableCollection<Audio> MusicList { get; private set; }
 
+        public bool IsExbanded { get; private set; }
         public Audio RecentMusic { get; private set; }
 
         public Audio SelectedMusic { get; set; }
 
         public ICommand SelectionCommand => new Command(async () => await PlayMusic());
         public ICommand NewRecordCommand => new Command(async () => await RecordAsync());
+        public ICommand RenameCommand => new Command(async (parameter) => await RenameAsync(parameter));
+        public ICommand DeleteCommand => new Command(async (parameter) => await DeleteAsync(parameter));
+
+        private async Task RenameAsync(object parameter)
+        {
+            IsExbanded = false;
+            if (parameter != null && parameter is Audio audio)
+            {
+                string result = await App.Current.MainPage.DisplayPromptAsync("Rename", "New name");
+                if (!string.IsNullOrWhiteSpace(result) && !string.IsNullOrEmpty(result))
+                {
+                    try
+                    {
+                        var parentDir = Path.GetDirectoryName(audio.Url);
+                        result.Replace(".wav", string.Empty);
+                        var newPath = Path.Combine(parentDir, $"{result.Trim()}.wav");
+                        File.Move(audio.Url, newPath);
+                        var existAudio = MusicList.FirstOrDefault(x => x == audio);
+                        if (existAudio != null)
+                        {
+                            var indx = MusicList.IndexOf(existAudio);
+                            var newAudio = new Audio
+                            {
+                                Title = result.Trim(),
+                                Url = newPath,
+                                Artist = audio.Artist,
+                                CoverImage = audio.CoverImage,
+                                Date = audio.Date,
+                                IsRecent = audio.IsRecent
+                            };
+                            MusicList.Remove(audio);
+                            MusicList.Insert(indx, newAudio);
+
+                        }
+                    }
+                    catch (Exception renameEx)
+                    { }
+                }
+
+            }
+        }
+
+
+        private async Task DeleteAsync(object parameter)
+        {
+            IsExbanded = false;
+
+            if (parameter != null && parameter is Audio audio)
+            {
+                bool answer = await App.Current.MainPage.DisplayAlert("Delete", "Would you like to Delete the Record", "Yes", "No");
+                if (answer)
+                {
+                    try
+                    {
+                        if (File.Exists(audio.Url))
+                        {
+                            File.Delete(audio.Url);
+                            if (RecentMusic != null && RecentMusic.Url == audio.Url)
+                                RecentMusic = null;
+                            MusicList.Remove(audio);
+                        }
+                    }
+                    catch (Exception deleteEx)
+                    { }
+                }
+            }
+        }
 
         public override async Task InitializeAsync(object[] navigationData = null)
         {
@@ -42,7 +110,7 @@ namespace AudioPlayer.ViewModels
                 await Task.FromResult(true);
             }
             catch (Exception ex)
-            {}
+            { }
         }
 
         private async Task PlayMusic()

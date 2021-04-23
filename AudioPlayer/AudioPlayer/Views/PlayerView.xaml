@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              xmlns:pv="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
              xmlns:local="clr-namespace:AudioPlayer"
+             xmlns:controls="clr-namespace:AudioPlayer.Views.Controls"
              local:ViewModelLocator.AutoWireViewModel="True"
              NavigationPage.HasNavigationBar="False"
              x:Class="AudioPlayer.Views.PlayerView">
@@ -54,11 +55,23 @@
                 </pv:PancakeView>
             </Grid>
             <StackLayout Grid.Row="1" Spacing="25" HorizontalOptions="Center" VerticalOptions="Center">
-                <pv:PancakeView  BackgroundColor="White" HeightRequest="170" WidthRequest="170" CornerRadius="85" HorizontalOptions="Center" VerticalOptions="Center" >
-                    <pv:PancakeView BackgroundColor="Gray" HeightRequest="150" WidthRequest="150" CornerRadius="75" HorizontalOptions="Center" VerticalOptions="Center">
-                        <Image Source="{Binding SelectedMusic.CoverImage, TargetNullValue=cover.png}" Aspect="AspectFill" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Grid>
+                    <pv:PancakeView Margin="16" BackgroundColor="Transparent" HeightRequest="170" WidthRequest="170" CornerRadius="85" HorizontalOptions="Center" VerticalOptions="Center" >
+                        <pv:PancakeView BackgroundColor="Gray" HeightRequest="150" WidthRequest="150" CornerRadius="75" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Image 
+                                x:Name="CoverImage" 
+                                Source="{Binding SelectedMusic.CoverImage, TargetNullValue=cover.png}" Aspect="AspectFill" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </pv:PancakeView>
                     </pv:PancakeView>
-                </pv:PancakeView>
+                    <controls:CircleProgress 
+                        VerticalOptions="FillAndExpand"
+                        HorizontalOptions="FillAndExpand"
+                        Progress="{Binding Progress}"
+                        LineBackgroundColor ="White"
+                        ProgressColor="Red"
+                        StrokeWidth="16"
+                        Margin="12"/>
+                </Grid>
                 <StackLayout HorizontalOptions="Center">
                     <StackLayout Padding="20,0,20,0">
                         <Label Text="{Binding SelectedMusic.Title}" TextColor="Black" FontSize="25" HorizontalOptions="Center"/>
@@ -154,7 +167,7 @@
                         <Image Source="next.png" HeightRequest="15" WidthRequest="15" HorizontalOptions="Center" VerticalOptions="Center"/>
                     </pv:PancakeView>
                 </StackLayout>
-                
+
                 <Grid ColumnDefinitions="Auto, Auto, *" Padding="20,0,20,0" >
 
                     <Label IsVisible="{Binding IsRepeatEnabled}" Text="Repeat Till" TextColor="Black" VerticalOptions="Center" />

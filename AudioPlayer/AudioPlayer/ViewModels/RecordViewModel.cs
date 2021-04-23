@@ -81,7 +81,7 @@ namespace AudioPlayer.ViewModels
         public ICommand AudioPlayPauseCommand { get; private set; }
         public ICommand BackCommand => new Command(async () => await BackAsync());
         public ICommand ShareCommand => new Command(
-            async () => { if (!string.IsNullOrEmpty(outPath)) await Share.RequestAsync(AudioSource, Path.GetFileNameWithoutExtension(AudioSource)); });
+            async () => { if (!string.IsNullOrEmpty(outPath)) await Share.RequestAsync(new ShareFileRequest { File = new ShareFile(AudioSource), Title = Path.GetFileNameWithoutExtension(AudioSource) }); });
 
         public RecordViewModel()
         {
@@ -120,66 +120,72 @@ namespace AudioPlayer.ViewModels
         {
 
             IsPlaying = false;
-            if (recorder != null)
-            {
-                await recorder.StopRecording();
-                if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
-                {
-                    if (recordedFiles.Count > 0)
-                    {
-                        if (recordedFiles.Last() != recorder.GetAudioFilePath())
-                            recordedFiles.Add(recorder.GetAudioFilePath());
-                    }
-                    else
-                    {
-                        recordedFiles.Add(recorder.GetAudioFilePath());
-                    }
-                }
-                if (stopwatch != null) stopwatch.Stop();
-            }
             try
             {
-                if (recordedFiles.Count > 0)
+                if (recorder != null)
                 {
-                    if (recordedFiles.Count > 1)
+                    if(recorder.IsRecording)
+                        await recorder.StopRecording();
+                    if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
                     {
-                        outPath = Path.Combine(FileSystem.AppDataDirectory, $"{Guid.NewGuid()}.wav");
-                        var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
-                        if (result != null)
+                        if (recordedFiles.Count > 1)
                         {
-                            foreach (var file in recordedFiles)
+                            if (recordedFiles.Last() != recorder.GetAudioFilePath())
+                                recordedFiles.Add(recorder.GetAudioFilePath());
+                        }
+                        else
+                        {
+                            recordedFiles.Add(recorder.GetAudioFilePath());
+                        }
+                        if (stopwatch != null) stopwatch.Stop();
+                        if (recordedFiles.Count > 0)
+                        {
+                            if (recordedFiles.Count > 1)
+                            {
+                                outPath = Path.Combine(FileSystem.AppDataDirectory, $"{Guid.NewGuid()}.wav");
+                                var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
+                                if (result != null)
+                                {
+                                    foreach (var file in recordedFiles)
+                                    {
+                                        try
+                                        {
+                                            if (File.Exists(file))
+                                                File.Delete(file);
+                                        }
+                                        catch (Exception deleteEx)
+                                        { }
+                                    }
+                                    recordedFiles.Clear();
+                                }
+                            }
+                            else
+                            {
+                                outPath = recordedFiles[0];
+                            }
+
+                            if (!string.IsNullOrEmpty(outPath))
                             {
                                 try
                                 {
-                                    if (File.Exists(file))
-                                        File.Delete(file);
+                                    var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
+                                    File.Move(outPath, newPath);
+                                    AudioSource = newPath;
+                                    FinishedRecording = true;
                                 }
-                                catch (Exception deleteEx)
-                                { }
+                                catch (Exception copyEx)
+                                {
+                                    stopwatch.Reset();
+                                }
                             }
-                            recordedFiles.Clear();
+
                         }
                     }
                     else
                     {
-                        outPath = recordedFiles[0];
+                        stopwatch.Reset();
+                        IsPlaying = false;
                     }
-
-                    if (!string.IsNullOrEmpty(outPath))
-                    {
-                        try
-                        {
-                            var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
-                            File.Move(outPath, newPath);
-                            AudioSource = newPath;
-                            FinishedRecording = true;
-                        }
-                        catch (Exception copyEx)
-                        {
-                            stopwatch.Reset();
-                        }
-                    }
-
                 }
                 else
                 {

@@ -1,4 +1,5 @@
-﻿using AudioPlayer.Models;
+﻿using AudioPlayer.Extensions;
+using AudioPlayer.Models;
 using MediaManager;
 using Plugin.AudioRecorder;
 using System;
@@ -15,7 +16,7 @@ namespace AudioPlayer.ViewModels
     public class PlayerViewModel : BaseViewModel
     {
         #region private Properties
-        private  List<Audio> MusicList;
+        private List<Audio> MusicList;
         private const string REPEATONEICON = "\uf021";
         private const string REPEATALLICON = "\uf079";
         double maximum = 100f;
@@ -24,10 +25,12 @@ namespace AudioPlayer.ViewModels
         private bool repeatAll;
         private int repeatMode;
         private bool isPlayTillActive;
-
         #endregion
 
         #region public Properties
+        public double Progress { get; set; }
+
+
         public Audio SelectedMusic { get; set; }
         public bool NoShuffle { get; set; }
         public bool NoRepeat { get; set; }
@@ -66,8 +69,8 @@ namespace AudioPlayer.ViewModels
             set
             {
                 isPlaying = value;
-                OnPropertyChanged();
                 OnPropertyChanged(nameof(PlayIcon));
+                MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Play, IsPlaying);
             }
         }
 
@@ -82,11 +85,11 @@ namespace AudioPlayer.ViewModels
         public ICommand ShuffleCommand => new Command(() => Shuffle());
 
         public ICommand PlayCommand => new Command(Play);
-        public ICommand ChangeCommand => new Command(ChangeMusic);
-        public ICommand BackCommand => new Command(async() => await _navigationService.NavigateToAsync<LandingViewModel>(new object[] {SelectedMusic}));
-        public ICommand ShareCommand => new Command(() => Share.RequestAsync(SelectedMusic.Url, SelectedMusic.Title));
+        public ICommand ChangeCommand => new Command(async (parameter) => await ChangeMusic(parameter));
+        public ICommand BackCommand => new Command(async () => await _navigationService.NavigateToAsync<LandingViewModel>(new object[] { SelectedMusic }));
+        public ICommand ShareCommand => new Command(() => Share.RequestAsync(new ShareFileRequest { File = new ShareFile(SelectedMusic.Url), Title = SelectedMusic.Title }));
         #endregion
-        
+
 
         public override async Task InitializeAsync(object[] navigationData = null)
         {
@@ -105,8 +108,7 @@ namespace AudioPlayer.ViewModels
             SelectedMusic = navigationData[0] as Audio;
             MusicList = navigationData[1] as List<Audio>;
 
-            PlayMusic(SelectedMusic);
-            await Task.FromResult(true);
+            await PlayMusic(SelectedMusic);
         }
         private void Repeat()
         {
@@ -193,34 +195,35 @@ namespace AudioPlayer.ViewModels
             }
         }
 
-        private void ChangeMusic(object obj)
+        private async Task ChangeMusic(object obj)
         {
             try
             {
                 if ((string)obj == "P")
-                    PreviousMusic();
+                    await PreviousMusic();
                 else if ((string)obj == "N")
-                    NextMusic();
+                    await NextMusic();
             }
             catch (Exception ex)
             { }
         }
 
-        private async void PlayMusic(Audio music)
+        private async Task PlayMusic(Audio music)
         {
             try
             {
+                Progress = 0;
                 var mediaInfo = CrossMediaManager.Current;
                 var mediaitem = await mediaInfo.Play(music?.Url);
                 IsPlaying = true;
 
-                mediaInfo.MediaItemFinished += (sender, args) =>
-                {
-                    if (!repeatOne)
-                        IsPlaying = false;
-                    if (repeatAll)
-                        NextMusic();
-                };
+                //mediaInfo.MediaItemFinished += (sender, args) =>
+                //{
+                //    if (!repeatOne && !repeatAll)
+                //        IsPlaying = false;
+                //    if (repeatAll)
+                //        NextMusic();
+                //};
 
 
                 Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
@@ -236,7 +239,24 @@ namespace AudioPlayer.ViewModels
                         mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
                         repeatMode = 2;
                         Repeat();
-                        mediaInfo.Stop();
+                        Task.Run(async () => await mediaInfo.Stop());
+                        //mediaInfo.Stop().SafeFireAndForget();
+                    }
+                    if (Maximum != default)
+                    {
+                        Progress = Position.TotalSeconds / Maximum;
+                        //var ticked = Position.TotalSeconds >= 0;
+
+                        if (Progress >= 1)
+                        {
+                            if (!repeatOne && !repeatAll)
+                                IsPlaying = false;
+                            if (repeatAll)
+                                Task.Run(async() => await NextMusic());
+                        }
+                        //else
+                        //{
+                        //}
                     }
                     return true;
                 });
@@ -245,7 +265,7 @@ namespace AudioPlayer.ViewModels
             { }
         }
 
-        private void NextMusic()
+        private async Task NextMusic()
         {
             try
             {
@@ -253,14 +273,14 @@ namespace AudioPlayer.ViewModels
                 if (currentIndex < MusicList.Count - 1)
                 {
                     SelectedMusic = MusicList[currentIndex + 1];
-                    PlayMusic(SelectedMusic);
+                    await PlayMusic(SelectedMusic);
                 }
                 else
                 {
                     if (repeatAll)
                     {
                         SelectedMusic = MusicList[0];
-                        PlayMusic(SelectedMusic);
+                        await PlayMusic(SelectedMusic);
                     }
                 }
             }
@@ -268,7 +288,7 @@ namespace AudioPlayer.ViewModels
             { }
         }
 
-        private void PreviousMusic()
+        private async Task PreviousMusic()
         {
             try
             {
@@ -277,7 +297,11 @@ namespace AudioPlayer.ViewModels
                 if (currentIndex > 0)
                 {
                     SelectedMusic = MusicList[currentIndex - 1];
-                    PlayMusic(SelectedMusic);
+                    await PlayMusic(SelectedMusic);
+                }
+                else
+                {
+                    await CrossMediaManager.Current.SeekToStart();
                 }
             }
             catch (Exception ex)

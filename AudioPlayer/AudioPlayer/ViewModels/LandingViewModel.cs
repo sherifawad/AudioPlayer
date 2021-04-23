@@ -32,6 +32,7 @@ namespace AudioPlayer.ViewModels
         public ICommand NewRecordCommand => new Command(async () => await RecordAsync());
         public ICommand RenameCommand => new Command(async (parameter) => await RenameAsync(parameter));
         public ICommand DeleteCommand => new Command(async (parameter) => await DeleteAsync(parameter));
+        public ICommand RefreshCommand => new Command(() => { Task.Delay(100); IsBusy = false; });
 
         private async Task RenameAsync(object parameter)
         {
@@ -100,6 +101,7 @@ namespace AudioPlayer.ViewModels
 
         public override async Task InitializeAsync(object[] navigationData = null)
         {
+            IsBusy = true;
             try
             {
                 await CrossMediaManager.Current.Stop();
@@ -111,6 +113,10 @@ namespace AudioPlayer.ViewModels
             }
             catch (Exception ex)
             { }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async Task PlayMusic()
@@ -135,7 +141,6 @@ namespace AudioPlayer.ViewModels
 
         private ObservableCollection<Audio> GetMusics()
         {
-            IsBusy = true;
             try
             {
                 string wavPattern = ".wav";
@@ -167,10 +172,6 @@ namespace AudioPlayer.ViewModels
             }
             catch (Exception ex)
             { }
-            finally
-            {
-                IsBusy = false;
-            }
             return MusicList;
         }
     }

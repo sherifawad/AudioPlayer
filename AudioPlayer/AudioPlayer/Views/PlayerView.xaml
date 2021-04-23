@@ -60,7 +60,7 @@
                         <pv:PancakeView BackgroundColor="Gray" HeightRequest="150" WidthRequest="150" CornerRadius="75" HorizontalOptions="Center" VerticalOptions="Center">
                             <Image 
                                 x:Name="CoverImage" 
-                                Source="{Binding SelectedMusic.CoverImage, TargetNullValue=cover.png}" Aspect="AspectFill" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                Source="{Binding SelectedMusic.CoverImage, TargetNullValue=cover.png, FallbackValue=cover.png}" Aspect="AspectFill" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center" VerticalOptions="Center"/>
                         </pv:PancakeView>
                     </pv:PancakeView>
                     <controls:CircleProgress 

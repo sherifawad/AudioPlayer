@@ -58,7 +58,6 @@ namespace AudioPlayer.ViewModels
                 if (value > 0)
                 {
                     maximum = value;
-                    OnPropertyChanged();
                 }
             }
         }
@@ -212,20 +211,11 @@ namespace AudioPlayer.ViewModels
         {
             try
             {
-                Progress = 0;
                 var mediaInfo = CrossMediaManager.Current;
-                var mediaitem = await mediaInfo.Play(music?.Url);
+                await Task.Run(async () => await mediaInfo.Play(music?.Url));
+                await mediaInfo.Play();
+                Progress = 0;
                 IsPlaying = true;
-
-                //mediaInfo.MediaItemFinished += (sender, args) =>
-                //{
-                //    if (!repeatOne && !repeatAll)
-                //        IsPlaying = false;
-                //    if (repeatAll)
-                //        NextMusic();
-                //};
-
-
                 Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
                 {
                     Duration = mediaInfo.Duration;
@@ -252,11 +242,8 @@ namespace AudioPlayer.ViewModels
                             if (!repeatOne && !repeatAll)
                                 IsPlaying = false;
                             if (repeatAll)
-                                Task.Run(async() => await NextMusic());
+                                Task.Run(async () => await NextMusic());
                         }
-                        //else
-                        //{
-                        //}
                     }
                     return true;
                 });

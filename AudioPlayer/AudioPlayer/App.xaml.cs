@@ -15,27 +15,27 @@ namespace AudioPlayer
         {
             InitializeComponent();
 
-            DependencyService.Register<MockDataStore>();
-            DependencyService.Register<INavigationService, NavigationService>();
+            //DependencyService.Register<MockDataStore>();
+            MainPage = new SplashScreen();
             //MainPage = new AppShell();
             //MainPage = new NavigationPage(new LandingPage());
 
-            DependencyService.Get<INavigationService>().InitializeAsync();
+            //DependencyService.Get<INavigationService>().InitializeAsync();
         }
-        protected override async void OnStart()
+        protected override void OnStart()
         {
-            var recordPermission = DependencyService.Get<IRecordPermission>();
-            var status = await recordPermission.CheckStatusAsync();
-            if (status != PermissionStatus.Granted)
-            {
-                status = await recordPermission.RequestAsync();
-                if(status != PermissionStatus.Granted)
-                    System.Diagnostics.Process.GetCurrentProcess().Kill();
-                //else
-                //   await DependencyService.Get<INavigationService>().InitializeAsync();
-            }
-            //else
-            //    await DependencyService.Get<INavigationService>().InitializeAsync();
+            //var recordPermission = DependencyService.Get<IRecordPermission>();
+            //var status = await recordPermission.CheckStatusAsync();
+            //if (status != PermissionStatus.Granted)
+            //{
+            //    status = await recordPermission.RequestAsync();
+            //    if(status != PermissionStatus.Granted)
+            //        System.Diagnostics.Process.GetCurrentProcess().Kill();
+            //    //else
+            //    //   await DependencyService.Get<INavigationService>().InitializeAsync();
+            //}
+            ////else
+            ////    await DependencyService.Get<INavigationService>().InitializeAsync();
 
         }
 

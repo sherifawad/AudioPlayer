@@ -28,7 +28,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Image Aspect="AspectFill" Grid.RowSpan="2" Source="{Binding RecentMusic.CoverImage, TargetNullValue=wmic.png}" />
+                        <Image Aspect="AspectFill" Grid.RowSpan="2" Source="{Binding RecentMusic.CoverImage, TargetNullValue=wmic.png, FallbackValue=wmic.png}" />
                         <!--<Image Aspect="AspectFill" Grid.RowSpan="2" Source="wmic.png"/>-->
                         <Grid Grid.Row="1" HeightRequest="80" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
                             <BoxView BackgroundColor="Black" Opacity="0.7" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>

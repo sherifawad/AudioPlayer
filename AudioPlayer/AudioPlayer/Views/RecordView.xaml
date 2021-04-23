@@ -39,9 +39,9 @@
                     <pv:PancakeView.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding BackCommand}"/>
                     </pv:PancakeView.GestureRecognizers>
-                    <Image Source="back.png" HeightRequest="15" WidthRequest="15" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Label Text="&#xf03a;" TextColor="Black" FontFamily="SolidAwesome" HeightRequest="15" WidthRequest="15" HorizontalOptions="Center" VerticalOptions="Center"/>
                 </pv:PancakeView>
-                <Label Grid.Column="1" Text="NOW PLAYING" TextColor="Black" FontSize="12" Opacity="0.5" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Grid.Column="1" Text="{Binding Name}" TextColor="Black" FontSize="Caption" Opacity="0.5" HorizontalOptions="Center" VerticalOptions="Center"/>
                 <pv:PancakeView IsVisible="{Binding FinishedRecording}" Grid.Column="2" HeightRequest="40" WidthRequest="40" CornerRadius="20" HorizontalOptions="End" 
                             VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
                     <pv:PancakeView.BackgroundGradientStops>
@@ -61,67 +61,39 @@
                 <StackLayout IsVisible="{Binding FinishedRecording}" Spacing="50" HorizontalOptions="Center" VerticalOptions="Center">
 
                     <StackLayout Orientation="Horizontal" Spacing="50" HorizontalOptions="Center">
-                        <Label Text="Repeat" FontSize="Large" FontAttributes="Bold" />
-                        <Switch IsToggled="{Binding Repeat}" />
+                        <Label Text="Repeat" FontSize="Large" FontAttributes="Bold" TextColor="Black" />
+                        <Switch x:Name="reSwitch" Toggled="Switch_Toggled" />
                     </StackLayout>
 
-                    <Grid ColumnSpacing="0" RowSpacing="0"
-                  IsVisible="{Binding Repeat}" RowDefinitions="*,*" ColumnDefinitions="Auto,*" HorizontalOptions="Center">
-                        <Label Text="Max Repeat" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Entry Grid.Column="1" Text="{Binding MaxCount}" Keyboard="Numeric" />
-                        <StackLayout Grid.Row="1" Orientation="Horizontal" VerticalOptions="Center">
-                            <Label Text="Repeat Till" FontAttributes="Bold" />
-                            <Switch IsToggled="{Binding IsPlayTillActive}" />
-                        </StackLayout>
-                        <TimePicker IsVisible="{Binding IsPlayTillActive}" Grid.Row="1" Grid.Column="1" Time="{Binding SelectedTime}" />
-                    </Grid>
-                    <!--<StackLayout WidthRequest="250"  HorizontalOptions="Center">
-                <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" Value="{Binding Position.TotalSeconds}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
-                <Grid HorizontalOptions="FillAndExpand">
-                    <Label Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="Start" VerticalOptions="Center"/>
-                    <Label Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="End" VerticalOptions="Center"/>
-                </Grid>
-            </StackLayout>
-            <Grid>
-                <Button IsVisible="{Binding StartPlaying}" 
-                        ImageSource="{Binding IsPlaying, Converter={vc:BolleanToFontIconConverter}}"
-                        BackgroundColor="Transparent" Command="{Binding AudioPlayPauseCommand}" />
-                
-                <pv:PancakeView IsVisible="{Binding StartPlaying,Converter={vc:BooleanInvertConverter}}"
-                    HeightRequest="62" WidthRequest="62" CornerRadius="31" HorizontalOptions="Center" 
-                            VerticalOptions="Center" BackgroundGradientStartPoint="0,0" BackgroundGradientEndPoint="1,0">
-                    <pv:PancakeView.BackgroundGradientStops>
-                        <pv:GradientStopCollection>
-                            <pv:GradientStop Color="#D4420C" Offset="0" />
-                            <pv:GradientStop Color="#F3A283" Offset="1" />
-                        </pv:GradientStopCollection>
-                    </pv:PancakeView.BackgroundGradientStops>
-                    <pv:PancakeView.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding PlayCommand}"/>
-                    </pv:PancakeView.GestureRecognizers>
-                    <Image Source="{Binding PlayImage}" HeightRequest="21" WidthRequest="21" HorizontalOptions="Center" VerticalOptions="Center"/>
-                </pv:PancakeView>
-            </Grid>-->
+                    <StackLayout x:Name="stackTime" Orientation="Horizontal" VerticalOptions="Center">
+                        <Label Text="Repeat Till" FontAttributes="Bold" TextColor="Black" />
+                        <Switch x:Name="timeSwitch" Toggled="Switch_Toggled_1" IsToggled="False" />
+                        <TimePicker x:Name="tPicker" TextColor="Black" />
+                    </StackLayout>
 
                     <!--<xct:MediaElement AutoPlay="True" Aspect="Fill" HeightRequest="100" BackgroundColor="Red" Source="{Binding AudioSource, Converter={vc:VideoSourceConverter}}" ShowsPlaybackControls="True" HorizontalOptions="Fill" />-->
-                    <mediaManager:VideoView Source="{Binding AudioSource}" VerticalOptions="FillAndExpand" ShowControls="True" AutoPlay="False" />
+                    <mediaManager:VideoView x:Name="vidPlayer" Source="{Binding AudioSource}" VerticalOptions="FillAndExpand" ShowControls="True" AutoPlay="False" />
                 </StackLayout>
-                <StackLayout IsVisible="{Binding FinishedRecording, Converter={vc:BooleanInvertConverter}}" 
-                     Spacing="50" HorizontalOptions="Center" VerticalOptions="Center">
+                <StackLayout 
+                     Spacing="0" HorizontalOptions="Center" VerticalOptions="Center">
 
-                    <Label Text="{Binding Timer,TargetNullValue=00:00:00}" FontSize="Large" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                    <StackLayout Orientation="Horizontal" Spacing="50" HorizontalOptions="Center">
-                        <Label Text="&#xf2ed;" FontFamily="SolidAwesome" FontSize="Large" />
-                        <Label Text="{Binding Icon}" FontFamily="SolidAwesome" FontSize="Large">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding PlayPauseCommand}" />
-                            </Label.GestureRecognizers>
-                        </Label>
-                        <Label Text="&#xf04d;" FontFamily="SolidAwesome" FontSize="Large" >
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding StopCommand}" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                    <Label Text="{Binding Timer, TargetNullValue=00:00:00}" TextColor="Black" FontSize="Large" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                    <StackLayout Orientation="Horizontal" Spacing="0" HorizontalOptions="Center">
+
+                        <Button BackgroundColor="Transparent" IsVisible="{Binding FinishedRecording}" 
+                                Text="&#xf2ed;" FontFamily="SolidAwesome" FontSize="Large" TextColor="Black"
+                                Command="{Binding DeleteCommand}" />
+
+                        <Button BackgroundColor="Transparent" Text="&#xf04b;" FontFamily="SolidAwesome" FontSize="Large" TextColor="Black" Command="{Binding PlayPauseCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Playing}" Value="true">
+                                    <Setter Property="Text" Value="&#xf04c;" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button BackgroundColor="Transparent" IsVisible="{Binding FinishedRecording, Converter={vc:BooleanInvertConverter}}" 
+                               Text="&#xf04d;" FontFamily="SolidAwesome" FontSize="Large" TextColor="Black" Command="{Binding StopCommand}" />
                     </StackLayout>
                 </StackLayout>
             </StackLayout>

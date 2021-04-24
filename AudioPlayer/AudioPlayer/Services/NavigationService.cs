@@ -15,7 +15,7 @@ namespace AudioPlayer.Services
 
         public async Task InitializeAsync()
         {
-            await NavigateToAsync<RecordViewModel>();
+            //await NavigateToAsync<RecordViewModel>();
         }
 
         public Task NavigateToAsync<TViewModel>(object[] parameter = null, bool animated = false) where TViewModel : BaseViewModel

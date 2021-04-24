@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Xamarin.CommunityToolkit.ObjectModel;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -17,68 +18,188 @@ namespace AudioPlayer.ViewModels
 {
     public class RecordViewModel : BaseViewModel
     {
-        private AudioRecorderService recorder;
+        #region Private Properties
+
+        private readonly AudioRecorderService recorder;
         private string outPath;
         private List<string> recordedFiles;
         private int _currentRecordNumber;
         private string audioSource;
         private bool Calculate;
+        private string timer;
+        private Stopwatch stopWatch;
+        private bool finishedRecording;
+        private bool playing;
+        private bool startPlaying;
+        private string icon;
+        #endregion
 
-        public string Timer { get; private set; }
-        public Stopwatch StopWatch { get; private set; }
+        #region Public Properties
+
+        public string Timer
+        {
+            get => timer;
+            private set => SetProperty(ref timer, value);
+        }
+        public Stopwatch
+            StopWatch
+        {
+            get => stopWatch;
+            private set => SetProperty(ref stopWatch, value);
+        }
 
         public string AudioSource
         {
             get => audioSource;
             private set
             {
-                audioSource = value;
+                SetProperty(ref audioSource, value);
                 OnPropertyChanged(nameof(Name));
             }
         }
         public string Name => FinishedRecording ? Path.GetFileNameWithoutExtension(AudioSource) : string.Empty;
-        public bool FinishedRecording { get; private set; }
-        public bool Playing { get; set; }
-        public bool StartPlaying { get; set; }
-        public string Icon { get; private set; }
+        public bool FinishedRecording
+        {
+            get => finishedRecording;
+            private set => SetProperty(ref finishedRecording, value);
+        }
+        public bool Playing
+        {
+            get => playing;
+            set => SetProperty(ref playing, value);
+        }
+        public bool StartPlaying
+        {
+            get => startPlaying;
+            set => SetProperty(ref startPlaying, value);
+        }
+        public string Icon
+        {
+            get => icon;
+            private set => SetProperty(ref icon, value);
+        }
+        #endregion
 
-        public ICommand PlayPauseCommand { get; private set; }
-        public ICommand PlayCommand { get; private set; }
-        public ICommand StopCommand { get; private set; }
-        public ICommand AudioPlayPauseCommand { get; private set; }
-        public ICommand DeleteCommand => new Command(() => DeleteAsync());
+        #region Public Commands
+        public IAsyncCommand PlayPauseCommand { get; }
+        public IAsyncCommand StopCommand { get; }
+        public IAsyncCommand DeleteCommand { get; }
+        public IAsyncCommand BackCommand { get; }
+        public IAsyncValueCommand ShareCommand { get; }
 
-        public ICommand BackCommand => new Command(async () => await BackAsync());
-        public ICommand ShareCommand => new Command(
-            async () => { if (!string.IsNullOrEmpty(AudioSource)) await Share.RequestAsync(new ShareFileRequest { File = new ShareFile(AudioSource), Title = Path.GetFileNameWithoutExtension(AudioSource) }); });
+        #endregion
 
+        #region Default Constructo
         public RecordViewModel()
         {
+            recordedFiles = new List<string>();
             StopWatch = new Stopwatch();
-            PlayPauseCommand = new Command(PlayPause);
             recorder = new AudioRecorderService
             {
                 StopRecordingAfterTimeout = false,
                 StopRecordingOnSilence = false
             };
-            StopCommand = new Command(async () => await Stop());
-            recordedFiles = new List<string>();
+            PlayPauseCommand = new AsyncCommand(RecordAudio, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
+            StopCommand = new AsyncCommand(Stop, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
+            DeleteCommand = new AsyncCommand(DeleteAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
+            BackCommand = new AsyncCommand(BackAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
+            ShareCommand = new AsyncValueCommand(ShareAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
         }
+        #endregion
 
+        #region Commands Methods
+        private async ValueTask ShareAsync()
+        {
+            if (string.IsNullOrEmpty(AudioSource))
+                return;
+
+            await Share.RequestAsync(new ShareFileRequest { File = new ShareFile(AudioSource), Title = Path.GetFileNameWithoutExtension(AudioSource) });
+        }
+        private async Task DeleteAsync()
+        {
+            if (!string.IsNullOrEmpty(AudioSource) && File.Exists(AudioSource))
+            {
+                File.Delete(AudioSource);
+                await CrossMediaManager.Current.Stop();
+                FinishedRecording = false;
+                recordedFiles.Clear();
+                StopWatch.Reset();
+            }
+        }
+        public async Task BackAsync()
+        {
+            if (!FinishedRecording)
+            {
+                if (recorder.IsRecording)
+                {
+                    Playing = false;
+                    Calculate = true;
+                    await recorder.StopRecording();
+                }
+
+            }
+            await _navigationService.NavigateToAsync<LandingViewModel>();
+
+        }
+        private async Task Stop()
+        {
+            Playing = false;
+            Calculate = true;
+            StopWatch.Stop();
+            await recorder.StopRecording();
+        }
+        async Task RecordAudio()
+        {
+            FinishedRecording = false;
+            Calculate = false;
+            if (!recorder.IsRecording) //Record button clicked
+            {
+
+                recorder.FilePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
+
+                var audioRecordTask = await recorder.StartRecording();
+                Playing = true;
+                StopWatch.Start();
+
+                Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
+                {
+                    Timer = StopWatch.Elapsed.ToString("hh\\:mm\\:ss");
+                    if (!recorder.IsRecording)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                });
+            }
+            else
+            {
+                Playing = false;
+                StopWatch.Stop();
+                await recorder.StopRecording();
+            }
+        }
+        #endregion
+
+        #region Overrided Methods
         public override async Task InitializeAsync(object[] navigationData = null)
         {
             await CrossMediaManager.Current.Stop();
             Icon = "\uf04b";
             recorder.AudioInputReceived += Recorder_AudioInputReceived;
             _currentRecordNumber = Preferences.Get("Count", 0);
-
         }
-
         public override Task UninitializeAsync(object[] navigationData = null)
         {
             recorder.AudioInputReceived -= Recorder_AudioInputReceived;
             return base.UninitializeAsync(navigationData);
         }
+
+        #endregion
+
+        #region Private Methods
 
         private async void Recorder_AudioInputReceived(object sender, string audioFile)
         {
@@ -88,7 +209,6 @@ namespace AudioPlayer.ViewModels
                 OnCalculate();
             await Task.FromResult(true);
         }
-
         private void OnCalculate()
         {
             recordedFiles = recordedFiles.Distinct().ToList();
@@ -109,7 +229,9 @@ namespace AudioPlayer.ViewModels
                                 File.Delete(file);
                         }
                         catch (Exception deleteEx)
-                        { }
+                        {
+                            Debug.WriteLine(deleteEx.Message);
+                        }
                     }
                 }
             }
@@ -134,189 +256,13 @@ namespace AudioPlayer.ViewModels
                 }
                 catch (Exception copyEx)
                 {
+                    Debug.WriteLine(copyEx);
                 }
             }
 
             StopWatch.Reset();
             recordedFiles.Clear();
         }
-
-        private void DeleteAsync()
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(AudioSource) && File.Exists(AudioSource))
-                {
-                    File.Delete(AudioSource);
-                    CrossMediaManager.Current.Stop();
-                    FinishedRecording = false;
-                    recordedFiles.Clear();
-                    StopWatch.Reset();
-                }
-            }
-            catch (Exception deleteEx)
-            { }
-        }
-
-        public async Task BackAsync()
-        {
-            if (!FinishedRecording)
-            {
-                if (recorder.IsRecording)
-                {
-                    Playing = false;
-                    Calculate = true;
-                    await recorder.StopRecording();
-                }
-
-            }
-            await _navigationService.NavigateToAsync<LandingViewModel>();
-
-        }
-
-        private async Task Stop()
-        {
-            Playing = false;
-            Calculate = true;
-            StopWatch.Stop();
-            await recorder.StopRecording();
-            //Calculate = true;
-            //await Task.Run(async () =>
-            //{
-            //    try
-            //    {
-            //        if (recorder != null)
-            //        {
-            //            if (recorder.IsRecording)
-            //                await recorder.StopRecording();
-
-            //            if (recordedFiles.Count > 0)
-            //            {
-            //                if (recordedFiles.Count > 1)
-            //                {
-            //                    if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()) && recordedFiles.Last() != recorder.GetAudioFilePath())
-            //                        recordedFiles.Add(recorder.GetAudioFilePath());
-
-            //                    outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
-            //                    var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
-            //                    if (result != null)
-            //                    {
-            //                        foreach (var file in recordedFiles)
-            //                        {
-            //                            try
-            //                            {
-            //                                if (File.Exists(file))
-            //                                    File.Delete(file);
-            //                            }
-            //                            catch (Exception deleteEx)
-            //                            { }
-            //                        }
-            //                    }
-            //                }
-            //                else
-            //                {
-            //                    if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
-            //                    {
-            //                        outPath = recorder.GetAudioFilePath();
-            //                    }
-            //                }
-
-            //                if (!string.IsNullOrEmpty(outPath))
-            //                {
-            //                    try
-            //                    {
-            //                        var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
-            //                        File.Move(outPath, newPath);
-            //                        _currentRecordNumber++;
-            //                        Preferences.Set("Count", _currentRecordNumber);
-            //                        Device.BeginInvokeOnMainThread(() =>
-            //                            {
-            //                                FinishedRecording = true;
-            //                                AudioSource = newPath;
-            //                            });
-            //                    }
-            //                    catch (Exception copyEx)
-            //                    {
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //    }
-            //    finally
-            //    {
-            //        //Device.BeginInvokeOnMainThread(() =>
-            //        //{
-            //        //    StopWatch.Reset();
-            //        //    Playing = false;
-
-            //        //});
-            //        recordedFiles.Clear();
-            //    }
-            //});
-        }
-
-
-        private async void PlayPause(object obj)
-        {
-
-            await RecordAudio();
-        }
-
-
-        async Task RecordAudio()
-        {
-
-            try
-            {
-                await Task.Run(async () =>
-                {
-                    FinishedRecording = false;
-                    Calculate = false;
-                    if (!recorder.IsRecording) //Record button clicked
-                    {
-
-                        recorder.FilePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
-
-                        var audioRecordTask = await recorder.StartRecording();
-                        Device.BeginInvokeOnMainThread(() =>
-                        {
-                            Playing = true;
-                            StopWatch.Start();
-
-                            Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
-                            {
-                                Timer = StopWatch.Elapsed.ToString("hh\\:mm\\:ss");
-                                if (!recorder.IsRecording)
-                                {
-                                    return false;
-                                }
-                                else
-                                {
-                                    return true;
-                                }
-                            });
-                        });
-
-                        //await audioRecordTask;
-                    }
-                    else //Stop button clicked
-                    {
-                        Device.BeginInvokeOnMainThread(() =>
-                        {
-                            Playing = false;
-                            StopWatch.Stop();
-                        });
-                        await recorder.StopRecording();
-                        if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
-                            recordedFiles.Add(recorder.GetAudioFilePath());
-                    }
-                });
-            }
-            catch (Exception ex)
-            { }
-        }
+        #endregion
     }
 }

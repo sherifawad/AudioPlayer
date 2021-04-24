@@ -11,16 +11,14 @@ namespace AudioPlayer.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {
-        protected readonly INavigationService _navigationService = DependencyService.Get<INavigationService>();
-        public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>();
+        protected readonly INavigationService _navigationService;
 
         public bool IsBusy { get; set; }
+        public string Title { get; set; }
 
-        string title = string.Empty;
-        public string Title
+        public BaseViewModel()
         {
-            get { return title; }
-            set { SetProperty(ref title, value); }
+            _navigationService = DependencyService.Get<INavigationService>();
         }
 
         public virtual Task InitializeAsync(object[] navigationData = null) => Task.CompletedTask;

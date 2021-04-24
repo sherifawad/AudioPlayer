@@ -69,7 +69,7 @@ namespace AudioPlayer.Views
             }
             catch (TaskCanceledException ex)
             {
-                Debug.WriteLine(ex);
+                Debug.Fail(ex.Message);
             }
         }
     }

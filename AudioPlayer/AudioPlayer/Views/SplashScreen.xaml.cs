@@ -17,7 +17,7 @@ namespace AudioPlayer.Views
     {
         //private readonly IRecordPermission recordPermission;
 
-        private CancellationTokenSource _cancellation;
+        //private CancellationTokenSource _cancellation;
         public SplashScreen()
         {
             InitializeComponent();
@@ -62,9 +62,9 @@ namespace AudioPlayer.Views
             //});
 
         }
-        private void Stop()
-        {
-            Interlocked.Exchange(ref _cancellation, new CancellationTokenSource()).Cancel();
-        }
+        //private void Stop()
+        //{
+        //    Interlocked.Exchange(ref _cancellation, new CancellationTokenSource()).Cancel();
+        //}
     }
 }

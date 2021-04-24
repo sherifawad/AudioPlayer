@@ -1,6 +1,7 @@
 ﻿using AudioPlayer.Services;
 using AudioPlayer.Views;
 using System;
+using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -15,27 +16,14 @@ namespace AudioPlayer
         {
             InitializeComponent();
 
-            //DependencyService.Register<MockDataStore>();
-            MainPage = new SplashScreen();
-            //MainPage = new AppShell();
-            //MainPage = new NavigationPage(new LandingPage());
-
-            //DependencyService.Get<INavigationService>().InitializeAsync();
         }
-        protected override void OnStart()
+        protected override async void OnStart()
         {
-            //var recordPermission = DependencyService.Get<IRecordPermission>();
-            //var status = await recordPermission.CheckStatusAsync();
-            //if (status != PermissionStatus.Granted)
-            //{
-            //    status = await recordPermission.RequestAsync();
-            //    if(status != PermissionStatus.Granted)
-            //        System.Diagnostics.Process.GetCurrentProcess().Kill();
-            //    //else
-            //    //   await DependencyService.Get<INavigationService>().InitializeAsync();
-            //}
-            ////else
-            ////    await DependencyService.Get<INavigationService>().InitializeAsync();
+            MainPage = new NavigationPage(new RecordView());
+            DependencyService.Register<INavigationService, NavigationService>(); var recordPermission = DependencyService.Get<IRecordPermission>();
+            var status = await recordPermission.CheckStatusAsync();
+            Device.BeginInvokeOnMainThread(async () => status = await recordPermission.RequestAsync());
+
 
         }
 

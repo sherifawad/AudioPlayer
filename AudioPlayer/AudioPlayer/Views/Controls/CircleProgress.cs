@@ -1,9 +1,6 @@
 ﻿using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using Xamarin.Forms;
 
@@ -109,8 +106,8 @@ namespace AudioPlayer.Views.Controls
         private void DrawCircle(SKImageInfo info, SKCanvas canvas, SKPaint paint, float angle)
         {
             int size = Math.Min(info.Width, info.Height);
-            float halfWidth = size / 2;
-            float halfHeight = size / 2;
+            //float halfWidth = size / 2;
+            //float halfHeight = size / 2;
 
             using (SKPath path = new SKPath())
             {

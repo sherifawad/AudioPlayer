@@ -22,6 +22,7 @@ namespace AudioPlayer.ViewModels
         private List<string> recordedFiles;
         private int _currentRecordNumber;
         private string audioSource;
+        private bool Calculate;
 
         public string Timer { get; private set; }
         public Stopwatch StopWatch { get; private set; }
@@ -68,16 +69,78 @@ namespace AudioPlayer.ViewModels
         {
             await CrossMediaManager.Current.Stop();
             Icon = "\uf04b";
-            if (navigationData == null)
-            {
-
-                _currentRecordNumber = Preferences.Get("Count", 0);
-                return;
-            }
-
-            _currentRecordNumber = (int)navigationData[0];
+            recorder.AudioInputReceived += Recorder_AudioInputReceived;
+            _currentRecordNumber = Preferences.Get("Count", 0);
 
         }
+
+        public override Task UninitializeAsync(object[] navigationData = null)
+        {
+            recorder.AudioInputReceived -= Recorder_AudioInputReceived;
+            return base.UninitializeAsync(navigationData);
+        }
+
+        private async void Recorder_AudioInputReceived(object sender, string audioFile)
+        {
+            if (!string.IsNullOrEmpty(audioFile))
+                recordedFiles.Add(audioFile);
+            if (Calculate && recordedFiles.Count > 0)
+                OnCalculate();
+            await Task.FromResult(true);
+        }
+
+        private void OnCalculate()
+        {
+            recordedFiles = recordedFiles.Distinct().ToList();
+            if (recordedFiles.Count > 1)
+            {
+                //if (recordedFiles[recordedFiles.Count - 1] != recordedFiles[recordedFiles.Count - 2])
+                //    recordedFiles.RemoveAt(recordedFiles.Count - 1);
+
+                outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
+                var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
+                if (result != null)
+                {
+                    foreach (var file in recordedFiles)
+                    {
+                        try
+                        {
+                            if (File.Exists(file))
+                                File.Delete(file);
+                        }
+                        catch (Exception deleteEx)
+                        { }
+                    }
+                }
+            }
+            else if (recordedFiles.Count == 1)
+            {
+                outPath = recordedFiles[0];
+            }
+
+            if (!string.IsNullOrEmpty(outPath))
+            {
+                try
+                {
+                    _currentRecordNumber++;
+                    var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
+                    File.Move(outPath, newPath);
+                    Preferences.Set("Count", _currentRecordNumber);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        FinishedRecording = true;
+                        AudioSource = newPath;
+                    });
+                }
+                catch (Exception copyEx)
+                {
+                }
+            }
+
+            StopWatch.Reset();
+            recordedFiles.Clear();
+        }
+
         private void DeleteAsync()
         {
             try
@@ -98,7 +161,15 @@ namespace AudioPlayer.ViewModels
         public async Task BackAsync()
         {
             if (!FinishedRecording)
-                await Stop();
+            {
+                if (recorder.IsRecording)
+                {
+                    Playing = false;
+                    Calculate = true;
+                    await recorder.StopRecording();
+                }
+
+            }
             await _navigationService.NavigateToAsync<LandingViewModel>();
 
         }
@@ -106,84 +177,85 @@ namespace AudioPlayer.ViewModels
         private async Task Stop()
         {
             Playing = false;
-            StopWatch.Reset();
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    if (recorder != null)
-                    {
-                        if (recorder.IsRecording)
-                            await recorder.StopRecording();
+            Calculate = true;
+            StopWatch.Stop();
+            await recorder.StopRecording();
+            //Calculate = true;
+            //await Task.Run(async () =>
+            //{
+            //    try
+            //    {
+            //        if (recorder != null)
+            //        {
+            //            if (recorder.IsRecording)
+            //                await recorder.StopRecording();
 
-                        if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
-                            recordedFiles.Add(recorder.GetAudioFilePath());
-                        if (recordedFiles.Count > 0)
-                        {
-                            if (recordedFiles.Count > 1)
-                            {
-                                if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()) && recordedFiles.Last() != recorder.GetAudioFilePath())
-                                    recordedFiles.Add(recorder.GetAudioFilePath());
+            //            if (recordedFiles.Count > 0)
+            //            {
+            //                if (recordedFiles.Count > 1)
+            //                {
+            //                    if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()) && recordedFiles.Last() != recorder.GetAudioFilePath())
+            //                        recordedFiles.Add(recorder.GetAudioFilePath());
 
-                                outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
-                                var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
-                                if (result != null)
-                                {
-                                    foreach (var file in recordedFiles)
-                                    {
-                                        try
-                                        {
-                                            if (File.Exists(file))
-                                                File.Delete(file);
-                                        }
-                                        catch (Exception deleteEx)
-                                        { }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
-                                {
-                                    outPath = recorder.GetAudioFilePath();
-                                }
-                            }
+            //                    outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
+            //                    var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
+            //                    if (result != null)
+            //                    {
+            //                        foreach (var file in recordedFiles)
+            //                        {
+            //                            try
+            //                            {
+            //                                if (File.Exists(file))
+            //                                    File.Delete(file);
+            //                            }
+            //                            catch (Exception deleteEx)
+            //                            { }
+            //                        }
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    if (!string.IsNullOrEmpty(recorder.GetAudioFilePath()))
+            //                    {
+            //                        outPath = recorder.GetAudioFilePath();
+            //                    }
+            //                }
 
-                            if (!string.IsNullOrEmpty(outPath))
-                            {
-                                try
-                                {
-                                    var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
-                                    File.Move(outPath, newPath);
-                                    _currentRecordNumber++;
-                                    Preferences.Set("Count", _currentRecordNumber);
-                                    Device.BeginInvokeOnMainThread(() =>
-                                        {
-                                            FinishedRecording = true;
-                                            AudioSource = newPath;
-                                        });
-                                }
-                                catch (Exception copyEx)
-                                {
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                }
-                finally
-                {
-                    //Device.BeginInvokeOnMainThread(() =>
-                    //{
-                    //    StopWatch.Reset();
-                    //    Playing = false;
+            //                if (!string.IsNullOrEmpty(outPath))
+            //                {
+            //                    try
+            //                    {
+            //                        var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
+            //                        File.Move(outPath, newPath);
+            //                        _currentRecordNumber++;
+            //                        Preferences.Set("Count", _currentRecordNumber);
+            //                        Device.BeginInvokeOnMainThread(() =>
+            //                            {
+            //                                FinishedRecording = true;
+            //                                AudioSource = newPath;
+            //                            });
+            //                    }
+            //                    catch (Exception copyEx)
+            //                    {
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //    }
+            //    finally
+            //    {
+            //        //Device.BeginInvokeOnMainThread(() =>
+            //        //{
+            //        //    StopWatch.Reset();
+            //        //    Playing = false;
 
-                    //});
-                    recordedFiles.Clear();
-                }
-            });
+            //        //});
+            //        recordedFiles.Clear();
+            //    }
+            //});
         }
 
 
@@ -202,9 +274,13 @@ namespace AudioPlayer.ViewModels
                 await Task.Run(async () =>
                 {
                     FinishedRecording = false;
+                    Calculate = false;
                     if (!recorder.IsRecording) //Record button clicked
                     {
 
+                        recorder.FilePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
+
+                        var audioRecordTask = await recorder.StartRecording();
                         Device.BeginInvokeOnMainThread(() =>
                         {
                             Playing = true;
@@ -224,10 +300,7 @@ namespace AudioPlayer.ViewModels
                             });
                         });
 
-                        recorder.FilePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
-
-                        var audioRecordTask = await recorder.StartRecording();
-                        await audioRecordTask;
+                        //await audioRecordTask;
                     }
                     else //Stop button clicked
                     {

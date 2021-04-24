@@ -1,4 +1,5 @@
 ﻿using AudioPlayer.Services;
+using AudioPlayer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,50 +21,45 @@ namespace AudioPlayer.Views
         public SplashScreen()
         {
             InitializeComponent();
-            _cancellation = new CancellationTokenSource();
+            //_cancellation = new CancellationTokenSource();
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            CancellationTokenSource cts = _cancellation; // safe copy
+            //CancellationTokenSource cts = _cancellation; // safe copy
 
-            Device.StartTimer(TimeSpan.FromMilliseconds(50), () =>
+            //Device.StartTimer(TimeSpan.FromMilliseconds(50), () =>
+            //{
+
+            //    if (cts.IsCancellationRequested)
+            //        return false;
+            //    else
+            //    {
+
+            Task.Run(async () =>
             {
 
-                if (cts.IsCancellationRequested)
-                    return false;
-                else
+                DependencyService.Register<INavigationService, NavigationService>();
+                var recordPermission = DependencyService.Get<IRecordPermission>();
+                var status = await recordPermission.CheckStatusAsync();
+                Device.BeginInvokeOnMainThread(async () =>
                 {
-
-                    Task.Run(async () =>
+                    while (status != PermissionStatus.Granted)
                     {
+                        status = await recordPermission.RequestAsync();
+                    }
+                    await DependencyService.Get<INavigationService>().NavigateToAsync<RecordViewModel>(null, true);
+                });
+                //Device.BeginInvokeOnMainThread(async () =>
+                //{
+                //});
 
-                        DependencyService.Register<INavigationService, NavigationService>();
-                        var recordPermission = DependencyService.Get<IRecordPermission>();
-                        var status = await recordPermission.CheckStatusAsync();
-
-                        if (status != PermissionStatus.Granted)
-                        {
-                            Device.BeginInvokeOnMainThread(async () =>
-                            {
-                                status = await recordPermission.RequestAsync();
-                            });
-                        }
-                        else
-                        {
-                            Device.BeginInvokeOnMainThread(async () =>
-                            {
-                                await DependencyService.Get<INavigationService>().InitializeAsync();
-                            });
-                            Stop();
-                        }
-
-                    });
-                }
-                return true;
             });
+            //    }
+            //    return true;
+            //});
 
         }
         private void Stop()

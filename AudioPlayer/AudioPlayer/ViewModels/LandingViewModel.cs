@@ -104,7 +104,6 @@ namespace AudioPlayer.ViewModels
             IsBusy = true;
             try
             {
-                await CrossMediaManager.Current.Stop();
                 RecentMusic = null;
                 if (navigationData != null && navigationData[0] is Audio lastPlayed)
                     RecentMusic = lastPlayed;
@@ -135,8 +134,9 @@ namespace AudioPlayer.ViewModels
         private async Task RecordAsync()
         {
 
-            var navPars = new object[] { MusicList.Count };
-            await _navigationService.NavigateToAsync<RecordViewModel>(navPars, true);
+            //var navPars = new object[] { MusicList.Count };
+            //await _navigationService.NavigateToAsync<RecordViewModel>(navPars, true);
+            await _navigationService.NavigateToAsync<RecordViewModel>(null, true);
         }
 
         private ObservableCollection<Audio> GetMusics()

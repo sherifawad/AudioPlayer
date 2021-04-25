@@ -19,5 +19,6 @@ namespace AudioPlayer.Services
         Task NavigateBackAsync();
 
         Task RemoveLastFromBackStackAsync();
+        Task<bool> PermissionCheck();
     }
 }

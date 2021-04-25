@@ -5,10 +5,15 @@ using Android.Content.PM;
 using Android.Runtime;
 using Android.OS;
 using MediaManager;
+using Xamarin.Essentials;
+using System.Threading.Tasks;
+using Android.Support.V4.Text;
+using Xamarin.Forms;
 
 namespace AudioPlayer.Droid
 {
-    [Activity(Label = "AudioPlayer", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize )]
+    [Activity(Label = "AudioPlayer", Icon = "@mipmap/icon", Theme = "@style/MainTheme", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
+    //[Activity(Label = "AudioPlayer")]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         protected override void OnCreate(Bundle savedInstanceState)
@@ -18,8 +23,10 @@ namespace AudioPlayer.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
             CrossMediaManager.Current.Init(this);
+            MessagingCenter.Subscribe<string>(MessengerKeys.App, MessengerKeys.Close, (s) =>this.FinishAffinity());
             LoadApplication(new App());
         }
+
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);

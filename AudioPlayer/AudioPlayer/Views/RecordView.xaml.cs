@@ -1,4 +1,6 @@
-﻿using AudioPlayer.ViewModels;
+﻿using AudioPlayer.IOC;
+using AudioPlayer.Services;
+using AudioPlayer.ViewModels;
 using MediaManager;
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ namespace AudioPlayer.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class RecordView : ContentPage
     {
+
         public RecordView()
         {
             InitializeComponent();

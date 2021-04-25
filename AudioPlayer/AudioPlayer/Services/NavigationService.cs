@@ -1,21 +1,30 @@
 ﻿using AudioPlayer.ViewModels;
+using AudioPlayer.Views;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Xamarin.CommunityToolkit.Extensions;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace AudioPlayer.Services
 {
     public class NavigationService : INavigationService
     {
+        private readonly IRecordPermission _recordPermission;
+
         protected Application CurrentApplication => Application.Current;
 
-        public async Task InitializeAsync()
+        public NavigationService()
         {
-            //await NavigateToAsync<RecordViewModel>();
+            _recordPermission = DependencyService.Get<IRecordPermission>();
+        }
+        public Task InitializeAsync()
+        {
+            return NavigateToAsync<RecordViewModel>();
         }
 
         public Task NavigateToAsync<TViewModel>(object[] parameter = null, bool animated = false) where TViewModel : BaseViewModel
@@ -40,7 +49,7 @@ namespace AudioPlayer.Services
         {
             await Application.Current.MainPage.Navigation.PopToRootAsync();
         }
-        public Task RemoveLastFromBackStackAsync()
+        public async Task RemoveLastFromBackStackAsync()
         {
             var mainPage = Application.Current.MainPage as NavigationPage;
 
@@ -50,10 +59,10 @@ namespace AudioPlayer.Services
                     mainPage.Navigation.NavigationStack[mainPage.Navigation.NavigationStack.Count - 2]);
             }
 
-            return Task.FromResult(true);
+            await Task.FromResult(true);
         }
 
-        public Task RemoveBackStackAsync()
+        public async Task RemoveBackStackAsync()
         {
             var mainPage = Application.Current.MainPage as NavigationPage;
 
@@ -65,8 +74,7 @@ namespace AudioPlayer.Services
                     mainPage.Navigation.RemovePage(page);
                 }
             }
-
-            return Task.FromResult(true);
+            await Task.FromResult(true);
         }
 
         private async Task InternalNavigateToAsync(Type viewModelType, object[] parameter, bool animated)
@@ -105,5 +113,16 @@ namespace AudioPlayer.Services
             Page page = Activator.CreateInstance(pageType) as Page;
             return page;
         }
+
+        public async Task<bool> PermissionCheck()
+        {
+            await _recordPermission.RequestAsync();
+            var status = await _recordPermission.CheckStatusAsync();
+            if (status != PermissionStatus.Granted)
+                return (bool)await Application.Current.MainPage.Navigation.ShowPopupAsync(new PermissionsPopup());
+            else
+                return await Task.FromResult(true);
+        }
+
     }
 }

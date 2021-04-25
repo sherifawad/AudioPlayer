@@ -1,5 +1,6 @@
 ﻿using AudioPlayer.Extensions;
 using AudioPlayer.Models;
+using AudioPlayer.Services;
 using MediaManager;
 using Plugin.AudioRecorder;
 using System;
@@ -36,6 +37,7 @@ namespace AudioPlayer.ViewModels
         private TimeSpan position;
         private bool isRepeatEnabled;
         private TimeSpan selectedTime;
+        private readonly INavigationService _navigationService;
         #endregion
 
         #region public Properties
@@ -135,8 +137,9 @@ namespace AudioPlayer.ViewModels
         #endregion
 
         #region Default Constructor
-        public PlayerViewModel()
+        public PlayerViewModel(INavigationService navigationService)
         {
+            _navigationService = navigationService;
             RepeatCommand = new AsyncCommand(Repeat, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             PlayCommand = new AsyncCommand(Play, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             ChangeCommand = new AsyncCommand<string>(ChangeMusic, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);

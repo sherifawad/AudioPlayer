@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<xct:Popup xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:xct="http://xamarin.com/schemas/2020/toolkit"
+           Size="200,250"
+             x:Class="AudioPlayer.Views.PermissionsPopup">
+    <FlexLayout VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand"
+                Wrap="Wrap"
+                AlignItems="Center"
+                AlignContent="SpaceAround"
+                JustifyContent="Center">
+        <Label Padding="20" Text="The app need  permission to Access Mic and Storage to work" TextColor="Black" FontAttributes="Bold"/>
+        <Button Text="Start" Clicked="Button_Clicked" />
+    </FlexLayout>
+</xct:Popup>

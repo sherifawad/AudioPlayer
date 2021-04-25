@@ -1,4 +1,5 @@
-﻿using AudioPlayer.ViewModels;
+﻿using AudioPlayer.IOC;
+using AudioPlayer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -47,7 +48,8 @@ namespace AudioPlayer
             {
                 return;
             }
-            var viewModel = (BaseViewModel)Activator.CreateInstance(viewModelType);
+            //var viewModel = (BaseViewModel)Activator.CreateInstance(viewModelType);
+            var viewModel = Startup.ServiceProvider.GetService(viewModelType);
             view.BindingContext = viewModel;
         }
     }

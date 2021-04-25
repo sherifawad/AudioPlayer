@@ -1,4 +1,5 @@
-﻿using AudioPlayer.Services;
+﻿using AudioPlayer.IOC;
+using AudioPlayer.Services;
 using AudioPlayer.Views;
 using System;
 using System.Threading.Tasks;
@@ -12,19 +13,21 @@ namespace AudioPlayer
     public partial class App : Application
     {
 
+        private readonly INavigationService _navigationService;
         public App()
         {
             InitializeComponent();
-
+            _navigationService = Startup.ServiceProvider.GetService<INavigationService>();
         }
         protected override async void OnStart()
         {
             MainPage = new NavigationPage(new RecordView());
-            DependencyService.Register<INavigationService, NavigationService>(); var recordPermission = DependencyService.Get<IRecordPermission>();
-            var status = await recordPermission.CheckStatusAsync();
-            Device.BeginInvokeOnMainThread(async () => status = await recordPermission.RequestAsync());
-
-
+            if (_navigationService != null)
+            {
+                var permissionsExist = await _navigationService.PermissionCheck();
+                if (!permissionsExist)
+                    MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Close);
+            }
         }
 
         protected override void OnSleep()

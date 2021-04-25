@@ -1,4 +1,5 @@
 ﻿using AudioPlayer.Helpers;
+using AudioPlayer.Services;
 using MediaManager;
 using Plugin.AudioRecorder;
 using System;
@@ -32,6 +33,7 @@ namespace AudioPlayer.ViewModels
         private bool playing;
         private bool startPlaying;
         private string icon;
+        private readonly INavigationService _navigationService;
         #endregion
 
         #region Public Properties
@@ -90,8 +92,9 @@ namespace AudioPlayer.ViewModels
         #endregion
 
         #region Default Constructo
-        public RecordViewModel()
+        public RecordViewModel(INavigationService navigationService)
         {
+            _navigationService = navigationService;
             recordedFiles = new List<string>();
             StopWatch = new Stopwatch();
             recorder = new AudioRecorderService

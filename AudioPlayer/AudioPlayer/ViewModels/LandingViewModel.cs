@@ -1,4 +1,5 @@
 ﻿using AudioPlayer.Models;
+using AudioPlayer.Services;
 using AudioPlayer.Views;
 using MediaManager;
 using System;
@@ -22,7 +23,7 @@ namespace AudioPlayer.ViewModels
         private bool isExbanded;
         private Audio recentMusic;
         private Audio selectedMusic;
-
+        private readonly INavigationService _navigationService;
         #endregion
 
         #region public Properties
@@ -55,9 +56,10 @@ namespace AudioPlayer.ViewModels
         #endregion
 
         #region Default Constructor
-        public LandingViewModel()
+        public LandingViewModel(INavigationService navigationService)
         {
-            MusicList = new ObservableCollection<Audio>();
+            _navigationService = navigationService;
+               MusicList = new ObservableCollection<Audio>();
             SelectionCommand = new AsyncCommand(PlayMusic, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             NewRecordCommand = new AsyncCommand(RecordAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             RenameCommand = new AsyncCommand<Audio>(RenameAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);

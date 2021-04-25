@@ -2,6 +2,7 @@
 using AudioPlayer.Views;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -79,39 +80,62 @@ namespace AudioPlayer.Services
 
         private async Task InternalNavigateToAsync(Type viewModelType, object[] parameter, bool animated)
         {
-            Page page = CreatePage(viewModelType, parameter);
-            var navigationPage = Application.Current.MainPage as NavigationPage;
-            if (navigationPage != null)
+            try
             {
-                await navigationPage.PushAsync(page, animated);
-            }
-            else
-            {
-                Application.Current.MainPage = new NavigationPage(page);
-            }
+                Page page = CreatePage(viewModelType, parameter);
+                var navigationPage = Application.Current.MainPage as NavigationPage;
+                if (navigationPage != null)
+                {
+                    await navigationPage.PushAsync(page, animated);
+                }
+                else
+                {
+                    Application.Current.MainPage = new NavigationPage(page);
+                }
 
-            await (page.BindingContext as BaseViewModel).InitializeAsync(parameter);
+                await (page.BindingContext as BaseViewModel).InitializeAsync(parameter);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
 
         private Type GetPageTypeForViewModel(Type viewModelType)
         {
-            var viewName = viewModelType.FullName.Replace("Model", string.Empty);
-            var viewModelAssemblyName = viewModelType.GetTypeInfo().Assembly.FullName;
-            var viewAssemblyName = string.Format(CultureInfo.InvariantCulture, "{0}, {1}", viewName, viewModelAssemblyName);
-            var viewType = Type.GetType(viewAssemblyName);
-            return viewType;
+            try
+            {
+                var viewName = viewModelType.FullName.Replace("Model", string.Empty);
+                var viewModelAssemblyName = viewModelType.GetTypeInfo().Assembly.FullName;
+                var viewAssemblyName = string.Format(CultureInfo.InvariantCulture, "{0}, {1}", viewName, viewModelAssemblyName);
+                var viewType = Type.GetType(viewAssemblyName);
+                return viewType;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+            return null;
         }
 
         private Page CreatePage(Type viewModelType, object parameter)
         {
-            Type pageType = GetPageTypeForViewModel(viewModelType);
-            if (pageType == null)
+            try
             {
-                throw new Exception($"Cannot locate page type for {viewModelType}");
-            }
+                Type pageType = GetPageTypeForViewModel(viewModelType);
+                if (pageType == null)
+                {
+                    throw new Exception($"Cannot locate page type for {viewModelType}");
+                }
 
-            Page page = Activator.CreateInstance(pageType) as Page;
-            return page;
+                Page page = Activator.CreateInstance(pageType) as Page;
+                return page;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+            return null;
         }
 
         public async Task<bool> PermissionCheck()

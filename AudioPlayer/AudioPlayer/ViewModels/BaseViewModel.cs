@@ -35,7 +35,7 @@ namespace AudioPlayer.ViewModels
 
         public virtual Task InitializeAsync(object[] navigationData = null) => Task.CompletedTask;
 
-        public virtual Task UninitializeAsync(object[] navigationData = null) => Task.CompletedTask;
+        public virtual Task UninitializeAsync() => Task.CompletedTask;
 
         protected bool SetProperty<T>(ref T backingStore, T value,
             [CallerMemberName] string propertyName = "",

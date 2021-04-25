@@ -2,6 +2,7 @@
 using AudioPlayer.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -32,25 +33,32 @@ namespace AudioPlayer
 
         private static void OnAutoWireViewModelChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            var view = bindable as Element;
-            if (view == null)
+            try
             {
-                return;
+                var view = bindable as Element;
+                if (view == null)
+                {
+                    return;
+                }
+
+                var viewType = view.GetType();
+                var viewName = viewType.FullName.Replace(".Views.", ".ViewModels.");
+                var viewAssemblyName = viewType.GetTypeInfo().Assembly.FullName;
+                var viewModelName = string.Format(CultureInfo.InvariantCulture, "{0}Model, {1}", viewName, viewAssemblyName);
+
+                var viewModelType = Type.GetType(viewModelName);
+                if (viewModelType == null)
+                {
+                    return;
+                }
+                //var viewModel = (BaseViewModel)Activator.CreateInstance(viewModelType);
+                var viewModel = Startup.ServiceProvider.GetService(viewModelType);
+                view.BindingContext = viewModel;
             }
-
-            var viewType = view.GetType();
-            var viewName = viewType.FullName.Replace(".Views.", ".ViewModels.");
-            var viewAssemblyName = viewType.GetTypeInfo().Assembly.FullName;
-            var viewModelName = string.Format(CultureInfo.InvariantCulture, "{0}Model, {1}", viewName, viewAssemblyName);
-
-            var viewModelType = Type.GetType(viewModelName);
-            if (viewModelType == null)
+            catch (Exception ex)
             {
-                return;
+                Debug.WriteLine(ex);
             }
-            //var viewModel = (BaseViewModel)Activator.CreateInstance(viewModelType);
-            var viewModel = Startup.ServiceProvider.GetService(viewModelType);
-            view.BindingContext = viewModel;
         }
     }
 }

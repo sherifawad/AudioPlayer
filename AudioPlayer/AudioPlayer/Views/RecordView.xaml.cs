@@ -30,6 +30,13 @@ namespace AudioPlayer.Views
             stackTime.IsVisible = false;
         }
 
+        protected override async void OnDisappearing()
+        {
+            base.OnDisappearing();
+            if (this.BindingContext is RecordViewModel viewModel)
+                await viewModel.UninitializeAsync();
+        }
+
         protected override bool OnBackButtonPressed()
         {
             return true;

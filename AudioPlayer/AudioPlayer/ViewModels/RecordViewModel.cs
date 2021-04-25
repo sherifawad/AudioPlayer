@@ -107,6 +107,9 @@ namespace AudioPlayer.ViewModels
             DeleteCommand = new AsyncCommand(DeleteAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             BackCommand = new AsyncCommand(BackAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             ShareCommand = new AsyncValueCommand(ShareAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
+            Icon = "\uf04b";
+            recorder.AudioInputReceived += Recorder_AudioInputReceived;
+            _currentRecordNumber = Preferences.Get("Count", 0);
         }
         #endregion
 
@@ -131,17 +134,22 @@ namespace AudioPlayer.ViewModels
         }
         public async Task BackAsync()
         {
-            if (!FinishedRecording)
+            try
             {
-                if (recorder.IsRecording)
+                if (!FinishedRecording)
                 {
-                    Playing = false;
-                    Calculate = true;
-                    await recorder.StopRecording();
-                }
+                    if (recorder.IsRecording)
+                    {
+                        Playing = false;
+                        Calculate = true;
+                        await recorder.StopRecording();
+                    }
 
+                }
+                await _navigationService.NavigateToAsync<LandingViewModel>();
             }
-            await _navigationService.NavigateToAsync<LandingViewModel>();
+            catch (Exception ex)
+            { }
 
         }
         private async Task Stop()
@@ -189,15 +197,37 @@ namespace AudioPlayer.ViewModels
         #region Overrided Methods
         public override async Task InitializeAsync(object[] navigationData = null)
         {
-            await CrossMediaManager.Current.Stop();
-            Icon = "\uf04b";
-            recorder.AudioInputReceived += Recorder_AudioInputReceived;
-            _currentRecordNumber = Preferences.Get("Count", 0);
+            try
+            {
+                await CrossMediaManager.Current.Stop();
+                Icon = "\uf04b";
+                recorder.AudioInputReceived += Recorder_AudioInputReceived;
+                _currentRecordNumber = Preferences.Get("Count", 0);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
-        public override Task UninitializeAsync(object[] navigationData = null)
+        public override async Task UninitializeAsync()
         {
-            recorder.AudioInputReceived -= Recorder_AudioInputReceived;
-            return base.UninitializeAsync(navigationData);
+            try
+            {
+                recorder.AudioInputReceived -= Recorder_AudioInputReceived;
+                await CrossMediaManager.Current.Stop();
+                Timer = string.Empty;
+                //AudioSource = string.Empty;
+                outPath = string.Empty;
+                FinishedRecording = false;
+                StartPlaying = false;
+                Playing = false;
+                recordedFiles.Clear();
+                stopWatch.Reset();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
 
         #endregion
@@ -214,57 +244,64 @@ namespace AudioPlayer.ViewModels
         }
         private void OnCalculate()
         {
-            recordedFiles = recordedFiles.Distinct().ToList();
-            if (recordedFiles.Count > 1)
+            try
             {
-                //if (recordedFiles[recordedFiles.Count - 1] != recordedFiles[recordedFiles.Count - 2])
-                //    recordedFiles.RemoveAt(recordedFiles.Count - 1);
+                if (recordedFiles.Count <= 0)
+                    return;
 
-                outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
-                var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
-                if (result != null)
+                StopWatch.Reset();
+                recordedFiles = recordedFiles.Distinct().ToList();
+                if (recordedFiles.Count > 1)
                 {
-                    foreach (var file in recordedFiles)
+                    outPath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.wav");
+                    var result = WaveFilesHelpers.Merge(recordedFiles, outPath);
+                    if (result != null)
                     {
-                        try
+                        foreach (var file in recordedFiles)
                         {
-                            if (File.Exists(file))
-                                File.Delete(file);
-                        }
-                        catch (Exception deleteEx)
-                        {
-                            Debug.WriteLine(deleteEx.Message);
+                            try
+                            {
+                                if (File.Exists(file))
+                                    File.Delete(file);
+                            }
+                            catch (Exception deleteEx)
+                            {
+                                Debug.WriteLine(deleteEx.Message);
+                            }
                         }
                     }
                 }
-            }
-            else if (recordedFiles.Count == 1)
-            {
-                outPath = recordedFiles[0];
-            }
-
-            if (!string.IsNullOrEmpty(outPath))
-            {
-                try
+                else if (recordedFiles.Count == 1)
                 {
-                    _currentRecordNumber++;
-                    var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
-                    File.Move(outPath, newPath);
-                    Preferences.Set("Count", _currentRecordNumber);
-                    Device.BeginInvokeOnMainThread(() =>
+                    outPath = recordedFiles[0];
+                }
+
+                if (!string.IsNullOrEmpty(outPath))
+                {
+                    try
                     {
-                        FinishedRecording = true;
-                        AudioSource = newPath;
-                    });
+                        _currentRecordNumber++;
+                        var newPath = Path.Combine(FileSystem.AppDataDirectory, $"Record-{_currentRecordNumber}.wav");
+                        File.Move(outPath, newPath);
+                        Preferences.Set("Count", _currentRecordNumber);
+                        Device.BeginInvokeOnMainThread(() =>
+                        {
+                            FinishedRecording = true;
+                            AudioSource = newPath;
+                        });
+                    }
+                    catch (Exception copyEx)
+                    {
+                        Debug.WriteLine(copyEx);
+                    }
                 }
-                catch (Exception copyEx)
-                {
-                    Debug.WriteLine(copyEx);
-                }
-            }
 
-            StopWatch.Reset();
-            recordedFiles.Clear();
+                recordedFiles.Clear();
+            }
+            catch (Exception exx)
+            {
+                Debug.WriteLine(exx);
+            }
         }
         #endregion
     }

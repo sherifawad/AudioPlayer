@@ -59,7 +59,7 @@ namespace AudioPlayer.ViewModels
         public LandingViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-               MusicList = new ObservableCollection<Audio>();
+            MusicList = new ObservableCollection<Audio>();
             SelectionCommand = new AsyncCommand(PlayMusic, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             NewRecordCommand = new AsyncCommand(RecordAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             RenameCommand = new AsyncCommand<Audio>(RenameAsync, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);

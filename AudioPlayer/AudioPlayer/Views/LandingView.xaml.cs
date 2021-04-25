@@ -21,5 +21,6 @@ namespace AudioPlayer.Views
         {
             return true;
         }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AudioPlayer.IOC;
 using AudioPlayer.Services;
 using AudioPlayer.Views;
+using MediaManager;
 using System;
 using System.Threading.Tasks;
 using Xamarin.Essentials;

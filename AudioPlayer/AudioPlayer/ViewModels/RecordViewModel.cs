@@ -100,7 +100,9 @@ namespace AudioPlayer.ViewModels
             recorder = new AudioRecorderService
             {
                 StopRecordingAfterTimeout = false,
-                StopRecordingOnSilence = false
+                SilenceThreshold = 0,
+                StopRecordingOnSilence = true
+                
             };
             PlayPauseCommand = new AsyncCommand(RecordAudio, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
             StopCommand = new AsyncCommand(Stop, onException: ex => Debug.WriteLine(ex), allowsMultipleExecutions: false);
@@ -146,10 +148,22 @@ namespace AudioPlayer.ViewModels
                     }
 
                 }
+                recorder.AudioInputReceived -= Recorder_AudioInputReceived;
+                await CrossMediaManager.Current.Stop();
+                Timer = string.Empty;
+                //AudioSource = string.Empty;
+                outPath = string.Empty;
+                FinishedRecording = false;
+                StartPlaying = false;
+                Playing = false;
+                recordedFiles.Clear();
+                stopWatch.Reset();
                 await _navigationService.NavigateToAsync<LandingViewModel>();
             }
             catch (Exception ex)
-            { }
+            {
+                Debug.WriteLine(ex);
+            }
 
         }
         private async Task Stop()
@@ -209,26 +223,26 @@ namespace AudioPlayer.ViewModels
                 Debug.WriteLine(ex);
             }
         }
-        public override async Task UninitializeAsync()
-        {
-            try
-            {
-                recorder.AudioInputReceived -= Recorder_AudioInputReceived;
-                await CrossMediaManager.Current.Stop();
-                Timer = string.Empty;
-                //AudioSource = string.Empty;
-                outPath = string.Empty;
-                FinishedRecording = false;
-                StartPlaying = false;
-                Playing = false;
-                recordedFiles.Clear();
-                stopWatch.Reset();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-            }
-        }
+        //public override async Task UninitializeAsync()
+        //{
+        //    try
+        //    {
+        //        recorder.AudioInputReceived -= Recorder_AudioInputReceived;
+        //        await CrossMediaManager.Current.Stop();
+        //        Timer = string.Empty;
+        //        //AudioSource = string.Empty;
+        //        outPath = string.Empty;
+        //        FinishedRecording = false;
+        //        StartPlaying = false;
+        //        Playing = false;
+        //        recordedFiles.Clear();
+        //        stopWatch.Reset();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine(ex);
+        //    }
+        //}
 
         #endregion
 

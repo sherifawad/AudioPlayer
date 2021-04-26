@@ -38,6 +38,7 @@ namespace AudioPlayer.ViewModels
         private bool isRepeatEnabled;
         private TimeSpan selectedTime;
         private readonly INavigationService _navigationService;
+        private double _AudioPointer;
         #endregion
 
         #region public Properties
@@ -76,8 +77,26 @@ namespace AudioPlayer.ViewModels
         public TimeSpan Position
         {
             get => position;
-            set => SetProperty(ref position, value);
+            set
+            {
+                SetProperty(ref position, value);
+            }
         }
+
+        public double AudioPointer
+        {
+            get => _AudioPointer;
+            set
+            {
+                if (TimeSpan.FromSeconds(value) >= TimeSpan.FromSeconds(_AudioPointer) + TimeSpan.FromSeconds(2))
+                {
+                    CrossMediaManager.Current.SeekTo(TimeSpan.FromSeconds(value));
+                    _AudioPointer = value;
+                }
+                SetProperty(ref _AudioPointer, value);
+            }
+        }
+
         public bool IsRepeatEnabled
         {
             get => isRepeatEnabled;
@@ -93,9 +112,9 @@ namespace AudioPlayer.ViewModels
                     SelectedTime = DateTime.Now.TimeOfDay + TimeSpan.FromMinutes(2);
             }
         }
-        public TimeSpan SelectedTime 
+        public TimeSpan SelectedTime
         {
-            get => selectedTime; 
+            get => selectedTime;
             set => SetProperty(ref selectedTime, value);
         }
 
@@ -269,43 +288,76 @@ namespace AudioPlayer.ViewModels
                 await mediaInfo.Play();
                 Progress = 0;
                 IsPlaying = true;
-                Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
-                {
-                    Duration = mediaInfo.Duration;
-                    Maximum = Duration.TotalSeconds;
-                    Position = mediaInfo.Position;
+                mediaInfo.PositionChanged += MediaInfo_PositionChanged;
+                //Device.StartTimer(TimeSpan.FromMilliseconds(500), () =>
+                //{
+                //    Duration = mediaInfo.Duration;
+                //    Maximum = Duration.TotalSeconds;
+                //    Position = mediaInfo.Position;
 
-                    if (IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
-                    {
-                        IsPlayTillActive = false;
-                        IsPlaying = false;
+                //    if (IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
+                //    {
+                //        IsPlayTillActive = false;
+                //        IsPlaying = false;
 
-                        Task.Run(async () =>
-                        {
-                            mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
-                            repeatMode = 2;
-                            await Repeat();
-                            await mediaInfo.Stop();
-                        });
-                    }
-                    if (Maximum != default)
-                    {
-                        Progress = Position.TotalSeconds / Maximum;
+                //        Task.Run(async () =>
+                //        {
+                //            mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
+                //            repeatMode = 2;
+                //            await Repeat();
+                //            await mediaInfo.Stop();
+                //        });
+                //    }
+                //    if (Maximum != default)
+                //    {
+                //        Progress = Position.TotalSeconds / Maximum;
 
-                        if (Progress >= 1)
-                        {
-                            if (!repeatOne && !repeatAll)
-                                IsPlaying = false;
-                            if (repeatAll)
-                                Task.Run(async () => await NextMusic());
-                        }
-                    }
-                    return true;
-                });
+                //        if (Progress >= 1)
+                //        {
+                //            if (!repeatOne && !repeatAll)
+                //                IsPlaying = false;
+                //            if (repeatAll)
+                //                Task.Run(async () => await NextMusic());
+                //        }
+                //    }
+                //    return true;
+                //});
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
+            }
+        }
+
+        private async void MediaInfo_PositionChanged(object sender, MediaManager.Playback.PositionChangedEventArgs e)
+        {
+            var mediaInfo = sender as IMediaManager;
+            Duration = mediaInfo.Duration;
+            Maximum = Duration.TotalSeconds;
+            Position = mediaInfo.Position;
+
+            AudioPointer = e.Position.TotalSeconds;
+
+            if (IsPlayTillActive && DateTime.Now.TimeOfDay >= SelectedTime)
+            {
+                IsPlayTillActive = false;
+                IsPlaying = false;
+                mediaInfo.ShuffleMode = MediaManager.Queue.ShuffleMode.Off;
+                repeatMode = 2;
+                await Repeat();
+                await mediaInfo.Stop();
+            }
+            if (Maximum != default)
+            {
+                Progress = AudioPointer / Maximum;
+
+                if (Progress >= 1)
+                {
+                    if (!repeatOne && !repeatAll)
+                        IsPlaying = false;
+                    if (repeatAll)
+                        await NextMusic();
+                }
             }
         }
 

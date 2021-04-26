@@ -81,7 +81,8 @@
             </StackLayout>
             <StackLayout Spacing="50" Grid.Row="2" HorizontalOptions="FillAndExpand" VerticalOptions="StartAndExpand">
                 <StackLayout WidthRequest="250"  HorizontalOptions="Center">
-                    <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" Value="{Binding Position.TotalSeconds}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
+                    <Slider MinimumTrackColor="#D4420C" MaximumTrackColor="#C0C8D4" ThumbColor="#D4420C" 
+                            Value="{Binding AudioPointer, Mode=TwoWay}" Maximum="{Binding Maximum}" HorizontalOptions="FillAndExpand"/>
                     <Grid HorizontalOptions="FillAndExpand">
                         <Label  Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="Start" VerticalOptions="Center"/>
                         <Label Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" FontSize="12" HorizontalOptions="End" VerticalOptions="Center"/>
